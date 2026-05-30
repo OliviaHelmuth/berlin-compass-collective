@@ -56,11 +56,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           <nav className="hidden md:flex items-center gap-1">
             {NAV.map((n) => {
               const active = path === n.to;
+              const isNew = n.to === "/match";
               return (
                 <Link
                   key={n.to}
                   to={n.to}
-                  className={`flex items-center gap-2 px-4 h-10 rounded-full text-sm font-medium transition-colors ${
+                  className={`relative flex items-center gap-2 px-4 h-10 rounded-full text-sm font-medium transition-colors ${
                     active
                       ? "bg-primary-container text-on-primary-container ring-2 ring-primary"
                       : "hover:bg-surface-container"
@@ -68,6 +69,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                 >
                   <span className="material-symbols-rounded" style={{ fontSize: 18 }}>{n.icon}</span>
                   {n.label}
+                  {isNew && (
+                    <span className="ml-1 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground border border-outline">NEW</span>
+                  )}
                 </Link>
               );
             })}

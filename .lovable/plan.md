@@ -1,61 +1,52 @@
-# Hackathon tracks vs. what we already have
+## 1. Fix AI Match (already real AI — just broken)
 
-You're closer than you think. Quick honest mapping:
+It IS using real Lovable AI + real Supabase data already. Two issues:
 
-| Track | Status in our app | Gap to close cheaply |
-|---|---|---|
-| **Hidden infrastructure / connective tissue** | ✅ Core of what we built — Ecosystem map, 153 locations, topic filters, peer reviews schema | Just needs **seeded reviews + comments** to look alive |
-| **Fragmented market access** | 🟡 Events (56) + Opportunities (6) + DMs exist | Add a "needs/offers" tag on profiles, surface in matchmaking |
-| **Admin/legal friction** | 🟡 Legal / Visa / Tax topic filters live on Ecosystem | Add a small **"Ask the Navigator" AI chat** scoped to Berlin admin (1 page, Lovable AI Gateway, free models) |
-| **Private capital → founders** | 🟡 VC category + Opportunities | Add `opp_type = 'angel-intro'` seeds + "Get intro" button (sends DM) |
-| **Research → startup** | ❌ Not built | Skip — out of scope for remaining credits |
+- **Schema error** (`AI_NoObjectGeneratedError`): `gemini-2.5-flash` sometimes returns prose instead of strict JSON for `generateObject`. Switch model to `google/gemini-3-flash-preview` (current default), loosen the schema (drop the strict `enum` on `kind`, accept then normalize), and add a try/catch fallback that retries with `gemini-2.5-pro` if the first parse fails.
+- **"Don't see AI Match in preview"**: the route exists and is in the nav. Most likely the preview was cached. Add a clear hero CTA + ensure the nav highlights it with an "NEW" pill so it's obvious. Also surface it on `/ecosystem` (already there) and from the Hub.
 
-So we credibly hit **3 of 5 tracks** with small additions.
+Also: cap catalog payload to ~40 locations / 20 events / 20 opps and pre-trim blurbs to 140 chars so the model has cleaner input → fewer schema failures.
 
-## What I propose to build (ranked by impact / credit cost)
+## 2. Landing page: make it feel like THE answer
 
-### 1. Fake-but-believable engagement layer (cheapest, biggest demo wow)
-Seed via one migration — no new UI work:
-- **120–200 reviews** across locations (rating, pros/cons, would_recommend, realistic comments) attributed to ~25 seeded profiles with avatars (DiceBear URLs, no storage cost)
-- **40–60 location_posts** ("Just had my Anmeldung appointment booked here in 3 days 🙌", etc.)
-- **15–25 extra profiles** with bios, sectors, interests so Members/Hub feels populated
-- **RSVPs** sprinkled on events so they show "23 going"
-- Surface aggregate rating + review count on Ecosystem cards and Location detail (small UI tweak)
+Rewrite `src/routes/index.tsx` into an exciting, benefit-led story. New sections in order:
 
-### 2. "AI Matchmaking" (real, using Lovable AI Gateway — free, no key needed)
-Repurpose the existing "Get matched" FAB into a real flow:
-- User answers 3 quick prompts (or we read their profile)
-- Server fn calls `google/gemini-2.5-flash` with the catalog of locations/opportunities/people as context
-- Returns top 3 picks with a one-line "why this fits you" rationale
-- Renders as a result card with links into Ecosystem / Opportunities / Members
+1. **Hero** — Big promise + social proof bar
+   - Headline: "Berlin's startup scene, finally in one place."
+   - Sub: "153 places. 56 events. 25 opportunities. One AI concierge that maps you to the right ones in 10 seconds."
+   - Primary CTA: "Match me with my Berlin" → `/match` (glowing, animated sparkle)
+   - Secondary: "Explore the ecosystem map" → `/ecosystem`
+   - Trust strip: live counters (locations, events, opportunities, founders) pulled from the loader data
+2. **"Stuck on…?" problem→solution grid** — 6 founder pains, each links to the exact filtered destination
+   - "Need a desk in Kreuzberg" → `/ecosystem?cat=coworking`
+   - "Anmeldung / visa help" → `/ecosystem?topic=legal`
+   - "Looking for an accelerator" → `/ecosystem?cat=accelerator`
+   - "German classes" → `/ecosystem?topic=german`
+   - "Want intros to angels" → `/opportunities`
+   - "Find my people" → `/match`
+3. **AI Match teaser** — full-bleed card with example query + animated typing, "Try it free, no login"
+4. **Happening now** — keep current 3-column (events / opportunities / new places)
+5. **Community proof** — pull top 3–4 highest-rated locations from loader, show as testimonial-style cards with star rating + review count (already in data)
+6. **How it works** — keep but tighten copy
+7. **Final CTA band** — "Your first week in Berlin's startup scene starts here"
 
-This is genuinely useful AND demos AI. ~1 server fn + 1 result component.
+Visual: keep current brutalist tokens (no new colors), add subtle Motion fade/slide-in on scroll for hero + grid, add an animated sparkle on the AI CTA.
 
-### 3. "Berlin Navigator" mini AI chat (admin/legal track)
-- New route `/navigator` — single-page chat
-- System prompt loaded with Berlin founder admin facts (Anmeldung, GmbH, Blue Card, ESOP tax, Finanzamt)
-- Streams answers from Lovable AI Gateway
-- Suggests relevant Ecosystem providers inline ("→ See: 3 immigration lawyers on the map")
+## 3. Nav polish
 
-### 4. Small polish for demo credibility
-- "Trending this week" strip on home (sorted by review count + recent posts)
-- Activity ticker on Hub: "Maria reviewed Expatrio · 2h ago"
-- Badge on locations with 5+ reviews: "Community favorite"
+Add a small "NEW" badge on the `AI Match` nav item so users notice it.
 
-## What I'd skip
-- Research-to-startup track (needs scraping universities + patent DBs — too heavy)
-- Crowdfunding/citizen investing (regulated, not faking that)
-- Real OAuth investor verification
+## Technical notes
 
-## Recommended scope for remaining credits
-**Do #1 + #2** (highest demo impact per credit). Add #3 only if credits allow. #4 takes 10 min and I'd bundle it with #1.
+- Files touched: `src/lib/matchmaking.functions.ts`, `src/routes/index.tsx`, `src/components/atlas/AppShell.tsx`
+- No DB changes, no new packages (Motion already isn't required — use Tailwind keyframes for the sparkle to stay zero-dep)
+- Reuse existing loader (`eventsQuery`, `oppsQuery`, `locationsQuery`) — already returns ratings via `getLocations`
+- Keep all semantic design tokens; no hardcoded colors
 
-## Technical sketch
-- 1 migration: seed profiles, reviews, posts, rsvps (idempotent, uses fixed UUIDs)
-- 1 server fn `lib/matchmaking.functions.ts` → Lovable AI Gateway
-- Update `LocationCard` + `location.$id.tsx` to show rating/review count
-- Update existing "Get matched" sheet to call the new server fn and render results
-- Optional: `src/routes/navigator.tsx` + nav entry
+## Out of scope
 
-Want me to go ahead with **#1 + #2 + #4**, and hold #3 unless you say go?
+- Navigator AI chat (#3 from earlier plan)
+- Any new tables or migrations
+- Auth flow changes
 
+Ready to build on approval.
