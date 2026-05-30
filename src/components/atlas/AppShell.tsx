@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
   { to: "/", label: "Discover", icon: "explore" },
+  { to: "/ecosystem", label: "Ecosystem", icon: "map" },
   { to: "/events", label: "Events", icon: "event" },
   { to: "/opportunities", label: "Opportunities", icon: "bolt" },
   { to: "/my-hub", label: "My Hub", icon: "hub" },
