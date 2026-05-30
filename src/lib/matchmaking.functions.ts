@@ -83,19 +83,19 @@ export const matchmake = createServerFn({ method: "POST" })
 
     const prompt = `Founder asked: "${data.query}"\n\nCatalog (JSON):\n${JSON.stringify(catalog).slice(0, 60000)}`;
 
-    const { experimental_output: output } = await generateText({
+    const { object } = await generateObject({
       model,
       system,
       prompt,
-      experimental_output: Output.object({ schema: ResultSchema }),
+      schema: ResultSchema,
     });
 
-    // Validate ids actually exist in catalog
-    const validIds = {
+    const validIds: Record<"location" | "event" | "opportunity", Set<string>> = {
       location: new Set(catalog.locations.map((x) => x.id)),
       event: new Set(catalog.events.map((x) => x.id)),
       opportunity: new Set(catalog.opportunities.map((x) => x.id)),
     };
-    const picks = output.picks.filter((p) => validIds[p.kind].has(p.id));
-    return { summary: output.summary, picks };
+    const picks = object.picks.filter((p) => validIds[p.kind].has(p.id));
+    return { summary: object.summary, picks };
   });
+
