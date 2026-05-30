@@ -21,7 +21,7 @@ function NotFoundComponent() {
         <h1 className="text-7xl font-bold text-primary">404</h1>
         <h2 className="mt-4 text-xl font-semibold">Off the map</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          That corner of Berlin isn't in the Atlas yet.
+          That corner of Berlin isn't on the map yet.
         </p>
         <Link
           to="/"
