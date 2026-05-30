@@ -25,6 +25,7 @@ export type Database = {
           id: string
           source: string | null
           starts_at: string
+          submitted_by: string | null
           title: string
           url: string | null
           venue: string | null
@@ -39,6 +40,7 @@ export type Database = {
           id?: string
           source?: string | null
           starts_at: string
+          submitted_by?: string | null
           title: string
           url?: string | null
           venue?: string | null
@@ -53,6 +55,7 @@ export type Database = {
           id?: string
           source?: string | null
           starts_at?: string
+          submitted_by?: string | null
           title?: string
           url?: string | null
           venue?: string | null
@@ -113,6 +116,7 @@ export type Database = {
           id: string
           opp_type: string
           org: string | null
+          submitted_by: string | null
           title: string
           url: string | null
         }
@@ -124,6 +128,7 @@ export type Database = {
           id?: string
           opp_type: string
           org?: string | null
+          submitted_by?: string | null
           title: string
           url?: string | null
         }
@@ -135,6 +140,7 @@ export type Database = {
           id?: string
           opp_type?: string
           org?: string | null
+          submitted_by?: string | null
           title?: string
           url?: string | null
         }
