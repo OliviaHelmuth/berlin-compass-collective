@@ -231,7 +231,7 @@ function FeedRow({ title, icon, linkTo, children }: { title: string; icon: strin
 function Discover() {
   const { data: locations } = useSuspenseQuery(locationsQuery);
   const search = Route.useSearch();
-  const navigate = Route.useNavigate();
+  
   const [active, setActive] = useState<Set<LocationCategory>>(() => new Set(search.cat ? [search.cat] : []));
   const [view, setView] = useState<"feed" | "map">(search.cat ? "map" : "feed");
   const [selectedId, setSelectedId] = useState<string | null>(null);
