@@ -1,0 +1,1 @@
+ALTER TABLE public.locations ADD CONSTRAINT locations_name_category_key UNIQUE (name, category);
