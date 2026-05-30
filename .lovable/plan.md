@@ -1,41 +1,61 @@
-# Split Ecosystem into its own tab; slim down Discover
+# Hackathon tracks vs. what we already have
 
-## Goal
-Discover (`/`) is overloaded. Move the places directory (search, filters, map, list) to a dedicated **Ecosystem** tab. Discover becomes a tight landing: hero + tiles + a compact "happening now" strip.
+You're closer than you think. Quick honest mapping:
 
-## Changes
+| Track | Status in our app | Gap to close cheaply |
+|---|---|---|
+| **Hidden infrastructure / connective tissue** | ✅ Core of what we built — Ecosystem map, 153 locations, topic filters, peer reviews schema | Just needs **seeded reviews + comments** to look alive |
+| **Fragmented market access** | 🟡 Events (56) + Opportunities (6) + DMs exist | Add a "needs/offers" tag on profiles, surface in matchmaking |
+| **Admin/legal friction** | 🟡 Legal / Visa / Tax topic filters live on Ecosystem | Add a small **"Ask the Navigator" AI chat** scoped to Berlin admin (1 page, Lovable AI Gateway, free models) |
+| **Private capital → founders** | 🟡 VC category + Opportunities | Add `opp_type = 'angel-intro'` seeds + "Get intro" button (sends DM) |
+| **Research → startup** | ❌ Not built | Skip — out of scope for remaining credits |
 
-### 1. New route: `src/routes/ecosystem.tsx`
-- Owns the current `Discover` component (search bar, view toggle, filter chips, map + list grid, "Get matched" FAB).
-- Reads `?cat=` search param (reuse the `VALID_CATS` + `validateSearch` already in `index.tsx`) and auto-applies the filter + switches to Map view, same behavior the hero tiles depend on today.
-- Owns the `locations` query loader.
-- Own `head()`: title "Ecosystem — Kiez Founders Berlin", description focused on coworking/VCs/services/universities.
-- Page header: H1 "Berlin's startup ecosystem" + one-line subtitle, then the existing search/filter/map UI.
+So we credibly hit **3 of 5 tracks** with small additions.
 
-### 2. Update `src/routes/index.tsx`
-- Remove `Discover` component, `AtlasMap` lazy import, `locationsQuery`, the loader, `validateSearch`, and `Route.useSearch` usage.
-- Keep `Hero` and `HowItWorks`.
-- Add a new **`HappeningNow`** strip between Hero and HowItWorks:
-  - Three small cards in a row (stacks on mobile): "Upcoming events" (top 3 from events query), "Open opportunities" (top 3), "New in the ecosystem" (3 most recently added locations).
-  - Each card links to its full page (`/events`, `/opportunities`, `/ecosystem`).
-  - Lightweight: just title + 2–3 line items each, no images, no map.
-- Hero tile links currently use `to="/" search={{ cat }} hash="discover"` → change to `to="/ecosystem" search={{ cat }}`.
+## What I propose to build (ranked by impact / credit cost)
 
-### 3. Update navigation: `src/components/atlas/AppShell.tsx`
-- `NAV` order: Discover (`/`) → **Ecosystem (`/ecosystem`, icon `map`)** → Events → Opportunities → My Hub → Messages.
-- Same entry rendered in desktop top nav and mobile bottom nav (both read from `NAV`).
-- Note: mobile bottom nav will now show 6 items — still fits but tight. Acceptable.
+### 1. Fake-but-believable engagement layer (cheapest, biggest demo wow)
+Seed via one migration — no new UI work:
+- **120–200 reviews** across locations (rating, pros/cons, would_recommend, realistic comments) attributed to ~25 seeded profiles with avatars (DiceBear URLs, no storage cost)
+- **40–60 location_posts** ("Just had my Anmeldung appointment booked here in 3 days 🙌", etc.)
+- **15–25 extra profiles** with bios, sectors, interests so Members/Hub feels populated
+- **RSVPs** sprinkled on events so they show "23 going"
+- Surface aggregate rating + review count on Ecosystem cards and Location detail (small UI tweak)
 
-### 4. Small follow-ups
-- Anywhere else linking to `/#discover` (e.g. Hero's "Browse the map" button) → point to `/ecosystem`.
-- Leave `my-hub`, `messages`, `events`, `opportunities`, `location/$id` untouched.
+### 2. "AI Matchmaking" (real, using Lovable AI Gateway — free, no key needed)
+Repurpose the existing "Get matched" FAB into a real flow:
+- User answers 3 quick prompts (or we read their profile)
+- Server fn calls `google/gemini-2.5-flash` with the catalog of locations/opportunities/people as context
+- Returns top 3 picks with a one-line "why this fits you" rationale
+- Renders as a result card with links into Ecosystem / Opportunities / Members
 
-## Out of scope
-- No data model changes, no new server functions.
-- No redesign of the Ecosystem page itself — it's a lift-and-shift of the existing Discover UI.
-- The "Happening Now" cards reuse existing queries (events, opportunities, locations); no new endpoints.
+This is genuinely useful AND demos AI. ~1 server fn + 1 result component.
 
-## Technical notes
-- TanStack Router will pick up `src/routes/ecosystem.tsx` automatically and regenerate `routeTree.gen.ts` on save.
-- `locationsQuery` moves with the component into `ecosystem.tsx`; index no longer needs it.
-- The `cat` search param contract (`coworking | accelerator | incubator | university | vc | hub | service`) moves verbatim onto the new route so hero tile deep-links keep working.
+### 3. "Berlin Navigator" mini AI chat (admin/legal track)
+- New route `/navigator` — single-page chat
+- System prompt loaded with Berlin founder admin facts (Anmeldung, GmbH, Blue Card, ESOP tax, Finanzamt)
+- Streams answers from Lovable AI Gateway
+- Suggests relevant Ecosystem providers inline ("→ See: 3 immigration lawyers on the map")
+
+### 4. Small polish for demo credibility
+- "Trending this week" strip on home (sorted by review count + recent posts)
+- Activity ticker on Hub: "Maria reviewed Expatrio · 2h ago"
+- Badge on locations with 5+ reviews: "Community favorite"
+
+## What I'd skip
+- Research-to-startup track (needs scraping universities + patent DBs — too heavy)
+- Crowdfunding/citizen investing (regulated, not faking that)
+- Real OAuth investor verification
+
+## Recommended scope for remaining credits
+**Do #1 + #2** (highest demo impact per credit). Add #3 only if credits allow. #4 takes 10 min and I'd bundle it with #1.
+
+## Technical sketch
+- 1 migration: seed profiles, reviews, posts, rsvps (idempotent, uses fixed UUIDs)
+- 1 server fn `lib/matchmaking.functions.ts` → Lovable AI Gateway
+- Update `LocationCard` + `location.$id.tsx` to show rating/review count
+- Update existing "Get matched" sheet to call the new server fn and render results
+- Optional: `src/routes/navigator.tsx` + nav entry
+
+Want me to go ahead with **#1 + #2 + #4**, and hold #3 unless you say go?
+

@@ -8,14 +8,33 @@ import { matchEventToLocation } from "@/lib/event-location-match";
 const ENTITY_CATEGORIES = new Set(["university", "coworking", "hub", "incubator", "accelerator"]);
 
 export const getLocations = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await supabaseAdmin
-    .from("locations")
-    .select("id, name, category, lat, lng, address, district, description, website, tags")
-    .eq("approved", true)
-    .order("name");
+  const [{ data, error }, { data: agg, error: aErr }] = await Promise.all([
+    supabaseAdmin
+      .from("locations")
+      .select("id, name, category, lat, lng, address, district, description, website, tags")
+      .eq("approved", true)
+      .order("name"),
+    supabaseAdmin.from("reviews").select("location_id, rating"),
+  ]);
   if (error) throw new Error(error.message);
-  return data;
+  if (aErr) throw new Error(aErr.message);
+  const stats = new Map<string, { sum: number; n: number }>();
+  for (const r of agg ?? []) {
+    const s = stats.get(r.location_id) ?? { sum: 0, n: 0 };
+    s.sum += r.rating ?? 0;
+    s.n += 1;
+    stats.set(r.location_id, s);
+  }
+  return (data ?? []).map((l) => {
+    const s = stats.get(l.id);
+    return {
+      ...l,
+      review_count: s?.n ?? 0,
+      avg_rating: s && s.n > 0 ? s.sum / s.n : null,
+    };
+  });
 });
+
 
 export const getLocation = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))

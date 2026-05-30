@@ -54,11 +54,11 @@ function Hero() {
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
-              to="/onboarding"
+              to="/match"
               className="inline-flex items-center gap-2 h-12 px-6 rounded-full bg-primary text-primary-foreground font-semibold text-sm border-2 border-outline shadow-brutal hover:translate-x-[-1px] hover:translate-y-[-1px] transition-transform"
             >
               <span className="material-symbols-rounded" style={{ fontSize: 18 }}>auto_awesome</span>
-              Start my journey
+              Get matched by AI
             </Link>
             <Link
               to="/ecosystem"
@@ -67,6 +67,7 @@ function Hero() {
               Browse the map
             </Link>
           </div>
+
         </div>
         <div className="grid grid-cols-2 gap-3">
           {([

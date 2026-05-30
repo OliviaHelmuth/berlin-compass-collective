@@ -57,7 +57,7 @@ function EcosystemPage() {
     activeTopics.forEach((id) => {
       TOPIC_FILTERS.find((t) => t.id === id)?.tags.forEach((tag) => topicTags.add(tag.toLowerCase()));
     });
-    return locations.filter((l) => {
+    const list = locations.filter((l) => {
       if (active.size > 0 && !active.has(l.category as LocationCategory)) return false;
       if (topicTags.size > 0) {
         const locTags = (l.tags ?? []).map((t: string) => t.toLowerCase());
@@ -66,7 +66,9 @@ function EcosystemPage() {
       if (query && !l.name.toLowerCase().includes(query.toLowerCase()) && !(l.district ?? "").toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
+    return [...list].sort((a: any, b: any) => (b.review_count ?? 0) - (a.review_count ?? 0));
   }, [locations, active, activeTopics, query]);
+
 
   const toggle = (id: LocationCategory) => {
     const next = new Set(active);
@@ -192,6 +194,18 @@ function EcosystemPage() {
               {loc.description && (
                 <p className="text-sm text-muted-foreground leading-snug line-clamp-2 mb-3">{loc.description}</p>
               )}
+              {(loc as any).review_count > 0 && (
+                <div className="flex items-center gap-2 mb-2 text-[11px]">
+                  <span className="font-bold">★ {(loc as any).avg_rating?.toFixed(1)}</span>
+                  <span className="text-muted-foreground">({(loc as any).review_count} reviews)</span>
+                  {(loc as any).review_count >= 5 && (
+                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-[9px]">
+                      Community favorite
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <span className="material-symbols-rounded" style={{ fontSize: 14 }}>place</span>
@@ -226,12 +240,13 @@ function EcosystemPage() {
       </div>
 
       <Link
-        to="/onboarding"
+        to="/match"
         className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 flex items-center gap-2 bg-accent text-accent-foreground px-5 py-3.5 rounded-2xl border-2 border-outline shadow-lime font-semibold text-sm active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
       >
         <span className="material-symbols-rounded" style={{ fontSize: 20 }}>auto_awesome</span>
-        Get matched
+        Get matched by AI
       </Link>
+
     </div>
   );
 }
