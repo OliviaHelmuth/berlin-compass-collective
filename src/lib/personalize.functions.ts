@@ -56,7 +56,7 @@ export const getPersonalizedFeed = createServerFn({ method: "POST" })
     if (data.userId) {
       const { data: p } = await supabaseAdmin
         .from("profiles")
-        .select("role, stage, industries, looking_for, background")
+        .select("role, stage, industries, looking_for, background, interests, current_focus")
         .eq("id", data.userId)
         .maybeSingle();
       if (p) user = p as UserProfileTags;
