@@ -14,16 +14,285 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      events: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          district: string | null
+          ends_at: string | null
+          host: string | null
+          id: string
+          source: string | null
+          starts_at: string
+          title: string
+          url: string | null
+          venue: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          district?: string | null
+          ends_at?: string | null
+          host?: string | null
+          id?: string
+          source?: string | null
+          starts_at: string
+          title: string
+          url?: string | null
+          venue?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          district?: string | null
+          ends_at?: string | null
+          host?: string | null
+          id?: string
+          source?: string | null
+          starts_at?: string
+          title?: string
+          url?: string | null
+          venue?: string | null
+        }
+        Relationships: []
+      }
+      locations: {
+        Row: {
+          address: string | null
+          approved: boolean
+          category: Database["public"]["Enums"]["location_category"]
+          created_at: string
+          description: string | null
+          district: string | null
+          id: string
+          lat: number
+          lng: number
+          name: string
+          submitted_by: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          approved?: boolean
+          category: Database["public"]["Enums"]["location_category"]
+          created_at?: string
+          description?: string | null
+          district?: string | null
+          id?: string
+          lat: number
+          lng: number
+          name: string
+          submitted_by?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          approved?: boolean
+          category?: Database["public"]["Enums"]["location_category"]
+          created_at?: string
+          description?: string | null
+          district?: string | null
+          id?: string
+          lat?: number
+          lng?: number
+          name?: string
+          submitted_by?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      opportunities: {
+        Row: {
+          created_at: string
+          deadline: string | null
+          description: string | null
+          district: string | null
+          id: string
+          opp_type: string
+          org: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          district?: string | null
+          id?: string
+          opp_type: string
+          org?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          district?: string | null
+          id?: string
+          opp_type?: string
+          org?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          district: string | null
+          id: string
+          sector: string | null
+          stage: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          district?: string | null
+          id: string
+          sector?: string | null
+          stage?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          district?: string | null
+          id?: string
+          sector?: string | null
+          stage?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          cons: string | null
+          created_at: string
+          id: string
+          location_id: string
+          pros: string | null
+          rating: number
+          user_id: string
+          would_recommend: boolean
+        }
+        Insert: {
+          comment?: string | null
+          cons?: string | null
+          created_at?: string
+          id?: string
+          location_id: string
+          pros?: string | null
+          rating: number
+          user_id: string
+          would_recommend?: boolean
+        }
+        Update: {
+          comment?: string | null
+          cons?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string
+          pros?: string | null
+          rating?: number
+          user_id?: string
+          would_recommend?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rsvps: {
+        Row: {
+          created_at: string
+          event_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
+      location_category:
+        | "coworking"
+        | "accelerator"
+        | "incubator"
+        | "university"
+        | "vc"
+        | "hub"
+        | "service"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +419,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+      location_category: [
+        "coworking",
+        "accelerator",
+        "incubator",
+        "university",
+        "vc",
+        "hub",
+        "service",
+      ],
+    },
   },
 } as const
