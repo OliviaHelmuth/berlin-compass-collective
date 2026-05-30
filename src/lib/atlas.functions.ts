@@ -3,6 +3,7 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { ensureWelcomeBerlinEvents } from "@/lib/welcome-events.server";
+import { ensureBerlinPartnerEvents } from "@/lib/berlin-partner-events.server";
 import { matchEventToLocation } from "@/lib/event-location-match";
 
 const ENTITY_CATEGORIES = new Set(["university", "coworking", "hub", "incubator", "accelerator"]);
@@ -66,7 +67,7 @@ export const getLocation = createServerFn({ method: "GET" })
   });
 
 export const getEvents = createServerFn({ method: "GET" }).handler(async () => {
-  await ensureWelcomeBerlinEvents();
+  await Promise.allSettled([ensureWelcomeBerlinEvents(), ensureBerlinPartnerEvents()]);
 
   const [{ data: events, error }, { data: locations, error: lErr }] = await Promise.all([
     supabaseAdmin

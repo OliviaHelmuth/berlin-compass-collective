@@ -160,11 +160,10 @@ function EventsPage() {
     setCustomRange(undefined);
   };
 
-  // Locations to plot: those matched by at least one event currently in the filtered list.
+  // Plot every known location (orgs, VCs, universities, coworking, hubs…) just like the Discover map.
   const mapLocations = useMemo(() => {
-    const ids = new Set(filtered.map((e) => e.location_id).filter(Boolean) as string[]);
     return locations
-      .filter((l) => ids.has(l.id) && l.lat != null && l.lng != null)
+      .filter((l) => l.lat != null && l.lng != null)
       .map((l) => ({
         id: l.id,
         name: l.name,
@@ -174,7 +173,7 @@ function EventsPage() {
         district: l.district ?? null,
         address: l.address ?? null,
       }));
-  }, [filtered, locations]);
+  }, [locations]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
