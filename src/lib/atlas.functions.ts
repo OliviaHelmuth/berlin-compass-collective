@@ -10,7 +10,7 @@ const ENTITY_CATEGORIES = new Set(["university", "coworking", "hub", "incubator"
 export const getLocations = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
     .from("locations")
-    .select("id, name, category, lat, lng, address, district, description, website")
+    .select("id, name, category, lat, lng, address, district, description, website, tags")
     .eq("approved", true)
     .order("name");
   if (error) throw new Error(error.message);

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, lazy, Suspense } from "react";
 import { getLocations } from "@/lib/atlas.functions";
-import { CATEGORIES, CATEGORY_LABEL, type LocationCategory } from "@/lib/categories";
+import { CATEGORIES, CATEGORY_LABEL, TOPIC_FILTERS, type LocationCategory } from "@/lib/categories";
 import { FilterChip } from "@/components/atlas/FilterChip";
 
 const AtlasMap = lazy(() => import("@/components/atlas/AtlasMap").then((m) => ({ default: m.AtlasMap })));
@@ -40,6 +40,7 @@ function EcosystemPage() {
   const search = Route.useSearch();
 
   const [active, setActive] = useState<Set<LocationCategory>>(() => new Set(search.cat ? [search.cat] : []));
+  const [activeTopics, setActiveTopics] = useState<Set<string>>(() => new Set());
   const [view, setView] = useState<"feed" | "map">(search.cat ? "map" : "feed");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -52,17 +53,31 @@ function EcosystemPage() {
   }, [search.cat]);
 
   const filtered = useMemo(() => {
+    const topicTags = new Set<string>();
+    activeTopics.forEach((id) => {
+      TOPIC_FILTERS.find((t) => t.id === id)?.tags.forEach((tag) => topicTags.add(tag.toLowerCase()));
+    });
     return locations.filter((l) => {
       if (active.size > 0 && !active.has(l.category as LocationCategory)) return false;
+      if (topicTags.size > 0) {
+        const locTags = (l.tags ?? []).map((t: string) => t.toLowerCase());
+        if (!locTags.some((t) => topicTags.has(t))) return false;
+      }
       if (query && !l.name.toLowerCase().includes(query.toLowerCase()) && !(l.district ?? "").toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [locations, active, query]);
+  }, [locations, active, activeTopics, query]);
 
   const toggle = (id: LocationCategory) => {
     const next = new Set(active);
     next.has(id) ? next.delete(id) : next.add(id);
     setActive(next);
+  };
+
+  const toggleTopic = (id: string) => {
+    const next = new Set(activeTopics);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setActiveTopics(next);
   };
 
   return (
@@ -102,16 +117,30 @@ function EcosystemPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-        {CATEGORIES.map((c) => (
-          <FilterChip
-            key={c.id}
-            label={c.label}
-            icon={c.icon}
-            active={active.has(c.id)}
-            onClick={() => toggle(c.id)}
-          />
-        ))}
+      <div className="space-y-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          {CATEGORIES.map((c) => (
+            <FilterChip
+              key={c.id}
+              label={c.label}
+              icon={c.icon}
+              active={active.has(c.id)}
+              onClick={() => toggle(c.id)}
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground shrink-0 pr-1">Topics</span>
+          {TOPIC_FILTERS.map((t) => (
+            <FilterChip
+              key={t.id}
+              label={t.label}
+              icon={t.icon}
+              active={activeTopics.has(t.id)}
+              onClick={() => toggleTopic(t.id)}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_420px] gap-6">
