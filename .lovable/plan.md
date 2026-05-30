@@ -1,58 +1,41 @@
+# Split Ecosystem into its own tab; slim down Discover
+
 ## Goal
+Discover (`/`) is overloaded. Move the places directory (search, filters, map, list) to a dedicated **Ecosystem** tab. Discover becomes a tight landing: hero + tiles + a compact "happening now" strip.
 
-Pull three entity types from startup-map.berlin into our `locations` table (with tags for search), surface them on the Discover/Events map, and rebuild the Opportunities page so accelerator/incubator programs become first-class.
+## Changes
 
-## Sources
+### 1. New route: `src/routes/ecosystem.tsx`
+- Owns the current `Discover` component (search bar, view toggle, filter chips, map + list grid, "Get matched" FAB).
+- Reads `?cat=` search param (reuse the `VALID_CATS` + `validateSearch` already in `index.tsx`) and auto-applies the filter + switches to Map view, same behavior the hero tiles depend on today.
+- Owns the `locations` query loader.
+- Own `head()`: title "Ecosystem — Kiez Founders Berlin", description focused on coworking/VCs/services/universities.
+- Page header: H1 "Berlin's startup ecosystem" + one-line subtitle, then the existing search/filter/map UI.
 
-- Universities: `https://startup-map.berlin/universities/...Berlin/Brandenburg`
-- Coworking: `https://startup-map.berlin/companies.workspaces/...not_closed`
-- Accelerators/Incubators: equivalent startup-map.berlin lists (`companies.accelerators` / `companies.incubators`)
+### 2. Update `src/routes/index.tsx`
+- Remove `Discover` component, `AtlasMap` lazy import, `locationsQuery`, the loader, `validateSearch`, and `Route.useSearch` usage.
+- Keep `Hero` and `HowItWorks`.
+- Add a new **`HappeningNow`** strip between Hero and HowItWorks:
+  - Three small cards in a row (stacks on mobile): "Upcoming events" (top 3 from events query), "Open opportunities" (top 3), "New in the ecosystem" (3 most recently added locations).
+  - Each card links to its full page (`/events`, `/opportunities`, `/ecosystem`).
+  - Lightweight: just title + 2–3 line items each, no images, no map.
+- Hero tile links currently use `to="/" search={{ cat }} hash="discover"` → change to `to="/ecosystem" search={{ cat }}`.
 
-These pages are JS-rendered SPA lists, so we'll scrape via **Firecrawl** (already connected) with JSON extraction — pulling name, website, address/district, and short description per entity. We geocode missing lat/lng via Google Maps (key already in secrets).
+### 3. Update navigation: `src/components/atlas/AppShell.tsx`
+- `NAV` order: Discover (`/`) → **Ecosystem (`/ecosystem`, icon `map`)** → Events → Opportunities → My Hub → Messages.
+- Same entry rendered in desktop top nav and mobile bottom nav (both read from `NAV`).
+- Note: mobile bottom nav will now show 6 items — still fits but tight. Acceptable.
 
-## Steps
-
-### 1. Scraper server function (`src/lib/startup-map.server.ts`)
-- One function per category: `syncUniversities()`, `syncCoworking()`, `syncAcceleratorsIncubators()`.
-- Each uses Firecrawl `scrape` with `formats: [{ type: 'json', schema }]` against the list URL (with pagination/scrolling via `waitFor`).
-- For each entity: geocode address → upsert into `public.locations` with the right `category` enum value and a `tags` array (e.g. `["university", "research"]`, `["coworking", "kreuzberg"]`, `["accelerator", "program", "deeptech"]`).
-- Use `external_id`-style dedupe via name+category (no schema change needed; do an upsert on `(name, category)` via a check-then-insert since there's no unique constraint — or add one, see Technical).
-
-### 2. One-time backfill trigger
-- Add a public route `src/routes/api/public/admin/sync-startup-map.ts` (POST) guarded by a simple shared-secret header so we can fire it once. Returns counts per category.
-- After backfill, this endpoint stays for occasional manual re-runs but no cron.
-
-### 3. Map + search integration
-- `locations` already drives both the Discover map and Events map, so new entries appear automatically once inserted.
-- Extend the location filter UI on Discover (and the events tag filter) to include the new tags / categories (accelerator, incubator) in chip options.
-
-### 4. Opportunities page enhancement (`src/routes/opportunities.tsx`)
-- Add a new section "Programs" listing all accelerator + incubator locations with: name, district, tags, link to location page, website.
-- Keep existing opportunities (grants/office hours/cofounder) as a second section.
-- Add a search bar + tag filter shared across both sections.
-
-## Technical Details
-
-- **DB**: add a unique constraint `locations_name_category_key` on `(name, category)` so upserts are idempotent. Migration only; no data shape change.
-- **Categories**: `university`, `coworking`, `accelerator`, `incubator` already exist in the `location_category` enum (verified via existing `ENTITY_CATEGORIES` set).
-- **Geocoding**: use Google Maps Geocoding API server-side via `GOOGLE_MAPS_API_KEY`; cache by address string in-memory per run.
-- **Tags strategy**: always include the category as a tag, plus district, plus any keywords surfaced by the source (e.g. "Coworking", "Hub", "Innovation Center", focus areas for accelerators like "DeepTech", "AI", "Climate").
-- **Firecrawl extraction schema** (example for coworking):
-  ```ts
-  { entities: z.array(z.object({
-      name: z.string(),
-      website: z.string().url().optional(),
-      address: z.string().optional(),
-      district: z.string().optional(),
-      description: z.string().optional(),
-      tags: z.array(z.string()).optional(),
-  })) }
-  ```
-- **Idempotency**: skip entries already present (same name + category) and update website/description/tags if changed.
-- **Failure handling**: each category is wrapped in try/catch; partial failures still return counts so we know what landed.
+### 4. Small follow-ups
+- Anywhere else linking to `/#discover` (e.g. Hero's "Browse the map" button) → point to `/ecosystem`.
+- Leave `my-hub`, `messages`, `events`, `opportunities`, `location/$id` untouched.
 
 ## Out of scope
+- No data model changes, no new server functions.
+- No redesign of the Ecosystem page itself — it's a lift-and-shift of the existing Discover UI.
+- The "Happening Now" cards reuse existing queries (events, opportunities, locations); no new endpoints.
 
-- Cron/scheduled refresh (user chose one-time backfill).
-- Logo/image scraping.
-- Importing programs as `opportunities` rows (we keep them as locations with `accelerator`/`incubator` category — the Opportunities page just queries locations of those categories).
+## Technical notes
+- TanStack Router will pick up `src/routes/ecosystem.tsx` automatically and regenerate `routeTree.gen.ts` on save.
+- `locationsQuery` moves with the component into `ecosystem.tsx`; index no longer needs it.
+- The `cat` search param contract (`coworking | accelerator | incubator | university | vc | hub | service`) moves verbatim onto the new route so hero tile deep-links keep working.
