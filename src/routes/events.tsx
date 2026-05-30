@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X, CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { getEvents } from "@/lib/atlas.functions";
+import { AtlasMap } from "@/components/atlas/AtlasMap";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
