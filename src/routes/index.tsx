@@ -14,7 +14,13 @@ const locationsQuery = queryOptions({
   queryFn: () => getLocations(),
 });
 
+const VALID_CATS: LocationCategory[] = ["coworking", "accelerator", "incubator", "university", "vc", "hub", "service"];
+
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { cat?: LocationCategory } => {
+    const cat = search.cat;
+    return typeof cat === "string" && (VALID_CATS as string[]).includes(cat) ? { cat: cat as LocationCategory } : {};
+  },
   head: () => ({
     meta: [
       { title: "Kiez Founders Berlin — your map to the ecosystem" },
