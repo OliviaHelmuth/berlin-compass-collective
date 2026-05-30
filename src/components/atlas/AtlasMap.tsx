@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import { useEffect, useRef, useState } from "react";
 import type { LocationCategory } from "@/lib/categories";
 import { CATEGORY_LABEL } from "@/lib/categories";
