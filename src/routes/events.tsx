@@ -71,7 +71,9 @@ function presetRange(preset: DatePreset): { from?: Date; to?: Date } {
 }
 
 function EventsPage() {
-  const { data: events } = useSuspenseQuery(eventsQuery);
+  const { data } = useSuspenseQuery(eventsQuery);
+  const events = data.events;
+  const locations = data.locations;
   const qc = useQueryClient();
   const triggered = useRef(false);
 
