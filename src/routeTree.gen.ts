@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocationIdRouteImport } from './routes/location.$id'
 import { Route as ApiPublicCronScrapeEventsRouteImport } from './routes/api/public/cron/scrape-events'
 import { Route as ApiPublicAdminSyncStartupMapRouteImport } from './routes/api/public/admin/sync-startup-map'
+import { Route as ApiPublicAdminFixStartupMapWebsitesRouteImport } from './routes/api/public/admin/fix-startup-map-websites'
 
 const OpportunitiesRoute = OpportunitiesRouteImport.update({
   id: '/opportunities',
@@ -60,6 +61,12 @@ const ApiPublicAdminSyncStartupMapRoute =
     path: '/api/public/admin/sync-startup-map',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAdminFixStartupMapWebsitesRoute =
+  ApiPublicAdminFixStartupMapWebsitesRouteImport.update({
+    id: '/api/public/admin/fix-startup-map-websites',
+    path: '/api/public/admin/fix-startup-map-websites',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
+  '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
   '/api/public/admin/sync-startup-map': typeof ApiPublicAdminSyncStartupMapRoute
   '/api/public/cron/scrape-events': typeof ApiPublicCronScrapeEventsRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
+  '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
   '/api/public/admin/sync-startup-map': typeof ApiPublicAdminSyncStartupMapRoute
   '/api/public/cron/scrape-events': typeof ApiPublicCronScrapeEventsRoute
 }
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
+  '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
   '/api/public/admin/sync-startup-map': typeof ApiPublicAdminSyncStartupMapRoute
   '/api/public/cron/scrape-events': typeof ApiPublicCronScrapeEventsRoute
 }
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/location/$id'
+    | '/api/public/admin/fix-startup-map-websites'
     | '/api/public/admin/sync-startup-map'
     | '/api/public/cron/scrape-events'
   fileRoutesByTo: FileRoutesByTo
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/location/$id'
+    | '/api/public/admin/fix-startup-map-websites'
     | '/api/public/admin/sync-startup-map'
     | '/api/public/cron/scrape-events'
   id:
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/location/$id'
+    | '/api/public/admin/fix-startup-map-websites'
     | '/api/public/admin/sync-startup-map'
     | '/api/public/cron/scrape-events'
   fileRoutesById: FileRoutesById
@@ -132,6 +145,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRoute
   LocationIdRoute: typeof LocationIdRoute
+  ApiPublicAdminFixStartupMapWebsitesRoute: typeof ApiPublicAdminFixStartupMapWebsitesRoute
   ApiPublicAdminSyncStartupMapRoute: typeof ApiPublicAdminSyncStartupMapRoute
   ApiPublicCronScrapeEventsRoute: typeof ApiPublicCronScrapeEventsRoute
 }
@@ -194,6 +208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAdminSyncStartupMapRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/admin/fix-startup-map-websites': {
+      id: '/api/public/admin/fix-startup-map-websites'
+      path: '/api/public/admin/fix-startup-map-websites'
+      fullPath: '/api/public/admin/fix-startup-map-websites'
+      preLoaderRoute: typeof ApiPublicAdminFixStartupMapWebsitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +225,8 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRoute,
   LocationIdRoute: LocationIdRoute,
+  ApiPublicAdminFixStartupMapWebsitesRoute:
+    ApiPublicAdminFixStartupMapWebsitesRoute,
   ApiPublicAdminSyncStartupMapRoute: ApiPublicAdminSyncStartupMapRoute,
   ApiPublicCronScrapeEventsRoute: ApiPublicCronScrapeEventsRoute,
 }

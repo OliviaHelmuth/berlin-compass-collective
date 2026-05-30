@@ -211,3 +211,68 @@ export async function syncStartupMapAll(): Promise<SyncResult[]> {
   }
   return results;
 }
+
+const WEBSITE_SCHEMA = {
+  type: "object",
+  properties: { website: { type: "string" } },
+  required: ["website"],
+} as const;
+
+const WEBSITE_PROMPT = `Find the official external website / homepage URL of the organization profiled on this page.
+Return ONLY the external homepage (e.g. "https://www.tu-berlin.de"), NOT a startup-map.berlin URL,
+NOT a social media link, NOT a LinkedIn/Twitter/Facebook URL. If multiple links are shown, prefer the one
+labeled "Website" or the organization's primary domain. Return as JSON: { "website": "https://..." }.`;
+
+async function fetchRealWebsite(detailUrl: string): Promise<string | null> {
+  const fc = new Firecrawl({ apiKey: requireFirecrawl() });
+  try {
+    const result: any = await fc.scrape(detailUrl, {
+      formats: [{ type: "json", schema: WEBSITE_SCHEMA as any, prompt: WEBSITE_PROMPT } as any],
+      onlyMainContent: true,
+      waitFor: 2500,
+    } as any);
+    const payload = result?.json ?? result?.data?.json ?? null;
+    const w = typeof payload?.website === "string" ? payload.website.trim() : "";
+    if (!w) return null;
+    if (w.includes("startup-map.berlin")) return null;
+    if (!/^https?:\/\//i.test(w)) return null;
+    return w;
+  } catch {
+    return null;
+  }
+}
+
+export async function fixStartupMapWebsites(): Promise<{ checked: number; updated: number; cleared: number; errors: string[] }> {
+  const errors: string[] = [];
+  let checked = 0;
+  let updated = 0;
+  let cleared = 0;
+
+  const { data: rows, error } = await supabaseAdmin
+    .from("locations")
+    .select("id, name, website")
+    .like("website", "%startup-map.berlin%");
+  if (error) throw new Error(error.message);
+
+  for (const r of rows ?? []) {
+    checked += 1;
+    const real = await fetchRealWebsite(r.website as string);
+    if (real) {
+      const { error: upErr } = await supabaseAdmin
+        .from("locations")
+        .update({ website: real })
+        .eq("id", r.id);
+      if (upErr) errors.push(`${r.name}: ${upErr.message}`);
+      else updated += 1;
+    } else {
+      const { error: upErr } = await supabaseAdmin
+        .from("locations")
+        .update({ website: null })
+        .eq("id", r.id);
+      if (upErr) errors.push(`${r.name}: ${upErr.message}`);
+      else cleared += 1;
+    }
+  }
+
+  return { checked, updated, cleared, errors: errors.slice(0, 30) };
+}
