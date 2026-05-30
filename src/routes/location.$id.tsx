@@ -91,8 +91,44 @@ function LocationPage() {
         </div>
       </div>
 
+      {events && events.length > 0 && (
+        <section>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-display text-xl font-bold">Upcoming events here</h2>
+            <span className="text-xs text-muted-foreground">{events.length}</span>
+          </div>
+          <div className="space-y-2">
+            {events.map((e: any) => {
+              const d = new Date(e.starts_at);
+              return (
+                <a
+                  key={e.id}
+                  href={e.url ?? "#"}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex gap-3 items-start p-4 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container transition-colors"
+                >
+                  <div className="size-12 shrink-0 rounded-lg bg-primary text-primary-foreground border-2 border-outline grid place-items-center font-display">
+                    <span className="text-[10px] font-bold uppercase">{d.toLocaleString("en", { month: "short" })}</span>
+                    <span className="text-base font-bold leading-none -mt-0.5">{d.getDate()}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-semibold text-sm">{e.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {d.toLocaleDateString("en", { weekday: "short" })} · {d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
+                      {e.host ? ` · ${e.host}` : ""}
+                    </p>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Review composer */}
       <ReviewComposer locationId={id} disabled={!uid} />
+
 
       {/* Reviews */}
       <section>
