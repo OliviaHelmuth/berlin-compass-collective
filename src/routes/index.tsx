@@ -224,21 +224,12 @@ function FeedRow({ title, icon, linkTo, children }: { title: string; icon: strin
 
 function Discover() {
   const { data: locations } = useSuspenseQuery(locationsQuery);
-  const search = Route.useSearch();
-  
-  const [active, setActive] = useState<Set<LocationCategory>>(() => new Set(search.cat ? [search.cat] : []));
-  const [view, setView] = useState<"feed" | "map">(search.cat ? "map" : "feed");
+
+  const [active, setActive] = useState<Set<LocationCategory>>(() => new Set());
+  const [view, setView] = useState<"feed" | "map">("feed");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    if (search.cat) {
-      setActive(new Set([search.cat]));
-      setView("map");
-      const el = document.getElementById("discover");
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [search.cat]);
 
   const filtered = useMemo(() => {
     return locations.filter((l) => {
