@@ -17,9 +17,9 @@ const locationsQuery = queryOptions({
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Berlin Founder Atlas — your map to the ecosystem" },
+      { title: "Kiez Founders Berlin — your map to the ecosystem" },
       { name: "description", content: "Find coworking, accelerators, VCs, universities, events and open opportunities across Berlin's startup ecosystem." },
-      { property: "og:title", content: "Berlin Founder Atlas" },
+      { property: "og:title", content: "Kiez Founders Berlin" },
       { property: "og:description", content: "The connective layer for Berlin's startup ecosystem — places, events, opportunities, people." },
     ],
   }),
