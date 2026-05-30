@@ -26,6 +26,7 @@ export type Database = {
           source: string | null
           starts_at: string
           submitted_by: string | null
+          tags: string[]
           title: string
           url: string | null
           venue: string | null
@@ -41,6 +42,7 @@ export type Database = {
           source?: string | null
           starts_at: string
           submitted_by?: string | null
+          tags?: string[]
           title: string
           url?: string | null
           venue?: string | null
@@ -56,6 +58,7 @@ export type Database = {
           source?: string | null
           starts_at?: string
           submitted_by?: string | null
+          tags?: string[]
           title?: string
           url?: string | null
           venue?: string | null
@@ -117,6 +120,7 @@ export type Database = {
           lng: number
           name: string
           submitted_by: string | null
+          tags: string[]
           website: string | null
         }
         Insert: {
@@ -131,6 +135,7 @@ export type Database = {
           lng: number
           name: string
           submitted_by?: string | null
+          tags?: string[]
           website?: string | null
         }
         Update: {
@@ -145,6 +150,7 @@ export type Database = {
           lng?: number
           name?: string
           submitted_by?: string | null
+          tags?: string[]
           website?: string | null
         }
         Relationships: []
@@ -159,6 +165,7 @@ export type Database = {
           opp_type: string
           org: string | null
           submitted_by: string | null
+          tags: string[]
           title: string
           url: string | null
         }
@@ -171,6 +178,7 @@ export type Database = {
           opp_type: string
           org?: string | null
           submitted_by?: string | null
+          tags?: string[]
           title: string
           url?: string | null
         }
@@ -183,6 +191,7 @@ export type Database = {
           opp_type?: string
           org?: string | null
           submitted_by?: string | null
+          tags?: string[]
           title?: string
           url?: string | null
         }
@@ -191,11 +200,16 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          background: string[]
           bio: string | null
           created_at: string
           display_name: string
           district: string | null
           id: string
+          industries: string[]
+          looking_for: string[]
+          onboarded_at: string | null
+          role: string | null
           sector: string | null
           stage: string | null
           updated_at: string
@@ -203,11 +217,16 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          background?: string[]
           bio?: string | null
           created_at?: string
           display_name: string
           district?: string | null
           id: string
+          industries?: string[]
+          looking_for?: string[]
+          onboarded_at?: string | null
+          role?: string | null
           sector?: string | null
           stage?: string | null
           updated_at?: string
@@ -215,11 +234,16 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          background?: string[]
           bio?: string | null
           created_at?: string
           display_name?: string
           district?: string | null
           id?: string
+          industries?: string[]
+          looking_for?: string[]
+          onboarded_at?: string | null
+          role?: string | null
           sector?: string | null
           stage?: string | null
           updated_at?: string
