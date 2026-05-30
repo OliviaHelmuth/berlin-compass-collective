@@ -1,67 +1,63 @@
-# Berlin Founder Atlas — Personalization & Open Calls
+# Real Berlin events via Firecrawl
 
-Turn the current directory into a personalized discovery + matching platform. Build in 4 phases so each ships value on its own.
+Replace seed/fake events with a scheduled scraper that pulls real Berlin startup events from public listing sites, normalizes them with an LLM, and upserts into the existing `events` table.
 
-## Phase 1 — Landing page rewrite
+## Sources (start small, expand later)
 
-Rewrite `src/routes/index.tsx` to match the new narrative:
+Public listing pages that don't require login:
+- **Lu.ma Berlin** — `https://lu.ma/berlin` (densest source for Berlin tech/founder meetups)
+- **Silicon Allee calendar** — `https://www.siliconallee.com/events`
+- **Berlin Startup Calendar** — `https://www.berlinstartupcalendar.com/`
+- **Meetup Berlin tech** — search page (best-effort, often gated)
 
-- **Hero**: "Welcome to Berlin's Startup Ecosystem" + subhead about WhatsApp/Slack pain + primary CTA `Start My Journey` → `/onboarding` (or `/login` if signed out).
-- **How It Works** (3 steps): Tell us about yourself → Get personalized recs → Build connections.
-- **Why We Exist**: knowledge trapped in private circles, we're the connective layer.
-- **What you'll discover**: Map · Events · Opportunities · Open Calls (link cards).
-- Keep brutalist purple/lime tokens; no new colors.
+Phase 1 ships with Lu.ma + Silicon Allee. The other two are easy to add once the pipeline works.
 
-## Phase 2 — Tagging foundation + onboarding wizard
+## How it works
 
-The whole recommendation engine depends on tags existing on both users and content. Do this first.
+```text
+pg_cron (daily 06:00 UTC)
+   └─► POST /api/public/cron/scrape-events  (apikey: anon)
+         └─► for each source:
+               Firecrawl scrape (markdown + links)
+               Lovable AI Gateway (gpt-5-mini) → structured array
+                  { title, starts_at, ends_at?, venue?, district?,
+                    host?, description?, url, category, tags[] }
+               upsert into public.events (dedup on source+url)
+```
 
-**Schema** (new migration):
-- `profile_tags` extension on `profiles`: `role text`, `stage text`, `industries text[]`, `looking_for text[]`, `background text[]`, `onboarded_at timestamptz`.
-- `locations.tags text[]`, `events.tags text[]`, `opportunities.tags text[]` (default `{}`, GIN indexes).
-- Seed central tag catalogue in `src/lib/tags.ts` (roles, stages, industries grouped by theme, looking-for, backgrounds — exactly the lists from the spec).
+## Schema changes
 
-**Onboarding wizard** at `/onboarding` (5 steps from spec): role → stage → industries (multi) → looking-for (multi) → background (multi). Progress bar, back/next, skippable last step. Saves via `saveOnboarding` server fn; redirects to `/` with a personalized feed. Auto-redirect new sign-ups here from `login.tsx`.
+Add to `events` so we can dedup and credit the source:
+- `source text` (e.g. `luma`, `silicon-allee`)
+- `external_id text` (URL or site-specific ID)
+- Unique index on `(source, external_id)`
 
-## Phase 3 — Recommendation engine + personalized feed
+Tags from the existing tag catalogue (AI, ClimateTech, etc.) flow into the personalized feed automatically.
 
-- `src/lib/recommend.ts`: pure scoring function `score(userTags, itemTags)` = weighted tag overlap (industry match 3, looking-for/category match 2, stage match 1) + recency bonus for events/opps.
-- New server fn `getPersonalizedFeed` returns top events, opportunities, locations, open calls for the signed-in user.
-- New `/feed` route (or replace `/` body when signed in) with sections: **For You — Events**, **For You — Opportunities**, **Spaces to check out**, **Open Calls matching your interests**. Falls back to "most recent" if user hasn't onboarded.
-- Add "Edit interests" link → reopens wizard.
+## Implementation
 
-## Phase 4 — Organizations + Open Calls
+1. **Connector**: connect Firecrawl via `standard_connectors--connect`. Provides `FIRECRAWL_API_KEY`.
+2. **Migration**: add `source` + `external_id` columns + unique index. Also add a one-time `DELETE FROM events WHERE source IS NULL` toggle (off by default — user decides).
+3. **Server route** `src/routes/api/public/cron/scrape-events.ts`:
+   - Auth gate: `apikey` header must equal `SUPABASE_PUBLISHABLE_KEY`.
+   - For each source: Firecrawl scrape → AI SDK `generateObject` with a Zod schema → batch upsert via `supabaseAdmin`.
+   - Returns `{ scraped, inserted, updated, errors }`.
+4. **Manual trigger** in UI: an admin-only "Refresh events" button on `/events` that calls the same route (so we can test without waiting for cron).
+5. **pg_cron job**: daily at 06:00 UTC via `net.http_post` to the stable preview/published URL.
 
-**Organizations**: every existing location can become an org page. Add:
-- `organizations` table (`id`, `location_id` nullable, `name`, `kind` (university/accelerator/vc/corporate/hub), `description`, `website`, `logo_url`, `tags text[]`, `owner_id`).
-- One-to-many `open_calls`: `id`, `org_id`, `title`, `body`, `track` (e.g. "Research partner", "Pilot", "Funding"), `tags text[]`, `deadline`, `status` (open/closed), `created_at`.
-- RLS: public read; owner/admin write. GRANTs for anon/authenticated/service_role per the public-schema rule.
+## What you'll see
 
-**Routes**:
-- `/orgs` — directory with tag filters.
-- `/orgs/$id` — detail page (mirrors `/location/$id` layout: header, tabs for **About / Open Calls / Reviews / Discussion**).
-- `/orgs/$id/manage` (owner only) — create/edit open calls.
-- `/open-calls` — global feed of all open calls, filterable + personalized.
+Within a minute of the first run, `/events` lists real upcoming Berlin events with venue, time, host, source link, and matching tags. The personalized "For You — Events" strip on the home page picks them up automatically because the recommender already scores on `tags`.
 
-**Matching**: open calls flow into the personalized feed via the same scoring function.
+## Out of scope
 
-## Out of scope for this plan
+- Per-user event submission flow (already exists via the existing INSERT policy).
+- Image/cover thumbnails — Lu.ma exposes them, can be added later.
+- Meetup OAuth (requires their API key) — skipped.
 
-Co-founder matching DM, full org claim/verification flow, notifications, paid features. Easy to add after Phase 4 lands.
+## Open questions
 
-## Technical notes
+- OK to wipe the existing seed/fake events on first run so the list isn't a mix? Default: keep them, mark new ones with `source` so we can tell them apart.
+- Daily is enough, or do you want hourly?
 
-- Server fns under `src/lib/*.functions.ts` using `requireSupabaseAuth` for mutations; reads via `supabaseAdmin` since data is public.
-- Tags stored as `text[]` with GIN indexes — simple and good enough at this scale; can migrate to a normalized `tags` table later if needed.
-- All new tables: `CREATE TABLE` → `GRANT` (anon select for public-read tables, authenticated CRUD where scoped, service_role all) → `ENABLE RLS` → policies, in one migration per table group.
-- Reuse existing Material/brutalist tokens in `src/styles.css`; no new colors.
-- Onboarding wizard is a single route with internal step state (no nested routes needed).
-
-## Suggested order
-
-1. Phase 1 landing (1 file) — quick win.
-2. Phase 2 schema migration → wizard → `saveOnboarding` fn.
-3. Phase 3 recommend.ts + feed route.
-4. Phase 4 orgs + open calls (largest chunk).
-
-Want me to start with Phase 1 + 2 in the first build pass, or all four in sequence?
+Want me to start with Lu.ma + Silicon Allee at a daily cadence, manual-trigger button on `/events`, and keep existing fake events for now?
