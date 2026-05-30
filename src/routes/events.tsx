@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { getEvents } from "@/lib/atlas.functions";
 
 const eventsQuery = queryOptions({ queryKey: ["events"], queryFn: () => getEvents() });
@@ -20,61 +20,54 @@ export const Route = createFileRoute("/events")({
   notFoundComponent: () => <div className="p-8">Not found.</div>,
 });
 
+const SYNC_KEY = "events:lastSync";
+const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6h
+
 function EventsPage() {
   const { data: events } = useSuspenseQuery(eventsQuery);
   const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const triggered = useRef(false);
 
-  const refresh = async () => {
-    setBusy(true);
-    setMsg("Scraping fresh events from Lu.ma + Silicon Allee…");
-    try {
-      const res = await fetch("/api/public/cron/scrape-events", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-        body: "{}",
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? `HTTP ${res.status}`);
-      setMsg(`Done — ${json.totalUpserted ?? 0} events imported.`);
-      await qc.invalidateQueries({ queryKey: ["events"] });
-      await qc.invalidateQueries({ queryKey: ["feed"] });
-    } catch (e) {
-      setMsg(`Failed: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
-      setBusy(false);
-    }
-  };
+  useEffect(() => {
+    if (triggered.current) return;
+    triggered.current = true;
+    if (typeof window === "undefined") return;
+
+    const last = Number(window.localStorage.getItem(SYNC_KEY) ?? 0);
+    const stale = Date.now() - last > SYNC_INTERVAL_MS;
+    if (!stale && events.length > 0) return;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/public/cron/scrape-events", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: "{}",
+        });
+        if (!res.ok) return;
+        window.localStorage.setItem(SYNC_KEY, String(Date.now()));
+        await qc.invalidateQueries({ queryKey: ["events"] });
+        await qc.invalidateQueries({ queryKey: ["feed"] });
+      } catch {
+        // silent
+      }
+    })();
+  }, [events.length, qc]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <header className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="font-display text-4xl font-bold tracking-tight">Events</h1>
-          <p className="text-muted-foreground mt-2">Real upcoming events scraped from Berlin's startup calendar.</p>
-        </div>
-        <button
-          onClick={refresh}
-          disabled={busy}
-          className="h-10 px-4 rounded-full bg-accent text-accent-foreground font-semibold text-sm border-2 border-outline shadow-brutal-sm disabled:opacity-60 flex items-center gap-2"
-        >
-          <span className="material-symbols-rounded" style={{ fontSize: 18 }}>{busy ? "hourglass_top" : "refresh"}</span>
-          {busy ? "Scraping…" : "Refresh from web"}
-        </button>
+      <header>
+        <h1 className="font-display text-4xl font-bold tracking-tight">Events</h1>
+        <p className="text-muted-foreground mt-2">Upcoming events for Berlin founders.</p>
       </header>
-
-      {msg && (
-        <div className="p-3 rounded-lg bg-surface-container border-2 border-outline/40 text-sm">{msg}</div>
-      )}
 
       <div className="space-y-3">
         {events.length === 0 && (
           <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30">
-            <p className="text-sm text-muted-foreground">No events yet. Hit "Refresh from web" to pull in real Berlin events.</p>
+            <p className="text-sm text-muted-foreground">No events yet — check back soon.</p>
           </div>
         )}
         {events.map((e) => {
@@ -93,14 +86,7 @@ function EventsPage() {
                   <span className="text-lg font-bold leading-none -mt-0.5">{d.getDate()}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-display font-semibold">{e.title}</h3>
-                    {(e as { source?: string }).source && (
-                      <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground border border-outline/30 px-1.5 py-0.5 rounded">
-                        {(e as { source?: string }).source}
-                      </span>
-                    )}
-                  </div>
+                  <h3 className="font-display font-semibold">{e.title}</h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {e.venue ?? "Berlin"}{e.district ? ` · ${e.district}` : ""} · {d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
                   </p>
