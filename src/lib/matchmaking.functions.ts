@@ -8,19 +8,15 @@ const InputSchema = z.object({
   query: z.string().min(3).max(600),
 });
 
+const PickSchema = z.object({
+  kind: z.string(),
+  id: z.string(),
+  title: z.string(),
+  why: z.string(),
+});
 const ResultSchema = z.object({
   summary: z.string(),
-  picks: z
-    .array(
-      z.object({
-        kind: z.enum(["location", "event", "opportunity"]),
-        id: z.string(),
-        title: z.string(),
-        why: z.string(),
-      }),
-    )
-    .min(1)
-    .max(5),
+  picks: z.array(PickSchema).max(8),
 });
 
 export const matchmake = createServerFn({ method: "POST" })
@@ -34,18 +30,18 @@ export const matchmake = createServerFn({ method: "POST" })
         .from("locations")
         .select("id, name, category, district, description, tags")
         .eq("approved", true)
-        .limit(120),
+        .limit(60),
       supabaseAdmin
         .from("events")
         .select("id, title, description, starts_at, host, district, tags")
         .gte("starts_at", new Date().toISOString())
         .order("starts_at")
-        .limit(40),
+        .limit(20),
       supabaseAdmin
         .from("opportunities")
         .select("id, title, org, description, opp_type, deadline, tags")
         .order("created_at", { ascending: false })
-        .limit(40),
+        .limit(20),
     ]);
 
     const catalog = {
@@ -55,7 +51,7 @@ export const matchmake = createServerFn({ method: "POST" })
         category: l.category,
         district: l.district,
         tags: l.tags,
-        blurb: (l.description ?? "").slice(0, 220),
+        blurb: (l.description ?? "").slice(0, 140),
       })),
       events: (events ?? []).map((e) => ({
         id: e.id,
@@ -63,7 +59,7 @@ export const matchmake = createServerFn({ method: "POST" })
         when: e.starts_at,
         host: e.host,
         tags: e.tags,
-        blurb: (e.description ?? "").slice(0, 180),
+        blurb: (e.description ?? "").slice(0, 120),
       })),
       opportunities: (opps ?? []).map((o) => ({
         id: o.id,
@@ -72,30 +68,51 @@ export const matchmake = createServerFn({ method: "POST" })
         type: o.opp_type,
         deadline: o.deadline,
         tags: o.tags,
-        blurb: (o.description ?? "").slice(0, 180),
+        blurb: (o.description ?? "").slice(0, 120),
       })),
     };
 
     const ai = createLovableAi(apiKey);
-    const model = ai("google/gemini-2.5-flash");
 
-    const system = `You are a Berlin startup ecosystem concierge. Given a founder's situation, pick the 3-5 best matches from the provided catalog. Always return ids that exist in the catalog. "kind" must match where the id came from (location, event, opportunity). Each "why" is one specific sentence — no fluff. The "summary" is one warm sentence framing the picks.`;
+    const system = `You are a Berlin startup ecosystem concierge. Given a founder's situation, pick the 3-5 best matches from the provided catalog.
 
-    const prompt = `Founder asked: "${data.query}"\n\nCatalog (JSON):\n${JSON.stringify(catalog).slice(0, 60000)}`;
+Rules:
+- Use ONLY ids that appear in the catalog.
+- "kind" must be exactly one of: "location", "event", "opportunity" — matching where the id came from.
+- Each "why" is ONE specific sentence explaining the fit. No fluff, no generic praise.
+- "summary" is one warm sentence framing the picks for the founder.
+- Return 3 to 5 picks.`;
 
-    const { object } = await generateObject({
-      model,
-      system,
-      prompt,
-      schema: ResultSchema,
-    });
+    const prompt = `Founder asked: "${data.query}"\n\nCatalog (JSON):\n${JSON.stringify(catalog).slice(0, 50000)}`;
 
-    const validIds: Record<"location" | "event" | "opportunity", Set<string>> = {
+    async function tryGenerate(modelId: string) {
+      return generateObject({
+        model: ai(modelId),
+        system,
+        prompt,
+        schema: ResultSchema,
+      });
+    }
+
+    let object;
+    try {
+      ({ object } = await tryGenerate("google/gemini-3-flash-preview"));
+    } catch (e1) {
+      console.warn("[match] flash failed, falling back to pro", e1);
+      ({ object } = await tryGenerate("google/gemini-2.5-pro"));
+    }
+
+    const validKinds = new Set(["location", "event", "opportunity"]);
+    const validIds: Record<string, Set<string>> = {
       location: new Set(catalog.locations.map((x) => x.id)),
       event: new Set(catalog.events.map((x) => x.id)),
       opportunity: new Set(catalog.opportunities.map((x) => x.id)),
     };
-    const picks = object.picks.filter((p) => validIds[p.kind].has(p.id));
+    const picks = object.picks
+      .map((p) => ({ ...p, kind: p.kind.toLowerCase().trim() }))
+      .filter((p) => validKinds.has(p.kind) && validIds[p.kind].has(p.id))
+      .slice(0, 5) as Array<{ kind: "location" | "event" | "opportunity"; id: string; title: string; why: string }>;
+
     return { summary: object.summary, picks };
   });
 
