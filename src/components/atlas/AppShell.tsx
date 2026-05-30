@@ -77,9 +77,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="material-symbols-rounded" style={{ fontSize: 20 }}>{dark ? "light_mode" : "dark_mode"}</span>
             </button>
             {email ? (
-              <div className="size-10 rounded-full bg-primary-container ring-2 ring-primary grid place-items-center font-display text-xs font-bold text-on-primary-container">
+              <Link
+                to="/settings"
+                aria-label="Settings"
+                className="size-10 rounded-full bg-primary-container ring-2 ring-primary grid place-items-center font-display text-xs font-bold text-on-primary-container hover:opacity-90"
+              >
                 {initials}
-              </div>
+              </Link>
             ) : (
               <Link
                 to="/login"

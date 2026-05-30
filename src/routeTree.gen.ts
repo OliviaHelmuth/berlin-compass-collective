@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
@@ -19,6 +20,11 @@ import { Route as ApiPublicCronScrapeEventsRouteImport } from './routes/api/publ
 import { Route as ApiPublicAdminSyncStartupMapRouteImport } from './routes/api/public/admin/sync-startup-map'
 import { Route as ApiPublicAdminFixStartupMapWebsitesRouteImport } from './routes/api/public/admin/fix-startup-map-websites'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OpportunitiesRoute = OpportunitiesRouteImport.update({
   id: '/opportunities',
   path: '/opportunities',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/settings': typeof SettingsRoute
   '/location/$id': typeof LocationIdRoute
   '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
   '/api/public/admin/sync-startup-map': typeof ApiPublicAdminSyncStartupMapRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/settings': typeof SettingsRoute
   '/location/$id': typeof LocationIdRoute
   '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
   '/api/public/admin/sync-startup-map': typeof ApiPublicAdminSyncStartupMapRoute
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/settings': typeof SettingsRoute
   '/location/$id': typeof LocationIdRoute
   '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
   '/api/public/admin/sync-startup-map': typeof ApiPublicAdminSyncStartupMapRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/opportunities'
+    | '/settings'
     | '/location/$id'
     | '/api/public/admin/fix-startup-map-websites'
     | '/api/public/admin/sync-startup-map'
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/opportunities'
+    | '/settings'
     | '/location/$id'
     | '/api/public/admin/fix-startup-map-websites'
     | '/api/public/admin/sync-startup-map'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/opportunities'
+    | '/settings'
     | '/location/$id'
     | '/api/public/admin/fix-startup-map-websites'
     | '/api/public/admin/sync-startup-map'
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRoute
+  SettingsRoute: typeof SettingsRoute
   LocationIdRoute: typeof LocationIdRoute
   ApiPublicAdminFixStartupMapWebsitesRoute: typeof ApiPublicAdminFixStartupMapWebsitesRoute
   ApiPublicAdminSyncStartupMapRoute: typeof ApiPublicAdminSyncStartupMapRoute
@@ -152,6 +165,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/opportunities': {
       id: '/opportunities'
       path: '/opportunities'
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRoute,
+  SettingsRoute: SettingsRoute,
   LocationIdRoute: LocationIdRoute,
   ApiPublicAdminFixStartupMapWebsitesRoute:
     ApiPublicAdminFixStartupMapWebsitesRoute,
