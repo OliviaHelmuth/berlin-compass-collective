@@ -5,11 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 const NAV = [
   { to: "/", label: "Discover", icon: "explore" },
   { to: "/ecosystem", label: "Ecosystem", icon: "map" },
+  { to: "/match", label: "AI Match", icon: "auto_awesome" },
   { to: "/events", label: "Events", icon: "event" },
   { to: "/opportunities", label: "Opportunities", icon: "bolt" },
   { to: "/my-hub", label: "My Hub", icon: "hub" },
   { to: "/messages", label: "Messages", icon: "chat" },
 ];
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
