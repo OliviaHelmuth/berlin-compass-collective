@@ -324,52 +324,55 @@ function EventsPage() {
         </div>
       </div>
 
-      <div className="space-y-3">
-        {events.length === 0 && (
-          <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30">
-            <p className="text-sm text-muted-foreground">No events yet — check back soon.</p>
-          </div>
-        )}
-        {events.length > 0 && filtered.length === 0 && (
-          <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30 space-y-3">
-            <p className="text-sm text-muted-foreground">No events match your filters.</p>
-            <Button variant="outline" size="sm" onClick={clearAll}>Clear filters</Button>
-          </div>
-        )}
-        {filtered.map((e) => {
-          const d = new Date(e.starts_at);
-          return (
-            <a
-              key={e.id}
-              href={e.url ?? "#"}
-              target="_blank"
-              rel="noreferrer"
-              className="block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all"
-            >
-              <div className="flex gap-4 items-start">
-                <div className="size-14 shrink-0 rounded-lg bg-primary-container text-on-primary-container border-2 border-outline grid place-items-center font-display">
-                  <span className="text-[10px] font-bold uppercase">{d.toLocaleString("en", { month: "short" })}</span>
-                  <span className="text-lg font-bold leading-none -mt-0.5">{d.getDate()}</span>
+      {view === "list" && (
+        <div className="space-y-3">
+          {events.length === 0 && (
+            <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30">
+              <p className="text-sm text-muted-foreground">No events yet — check back soon.</p>
+            </div>
+          )}
+          {events.length > 0 && filtered.length === 0 && (
+            <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30 space-y-3">
+              <p className="text-sm text-muted-foreground">No events match your filters.</p>
+              <Button variant="outline" size="sm" onClick={clearAll}>Clear filters</Button>
+            </div>
+          )}
+          {filtered.map((e) => {
+            const d = new Date(e.starts_at);
+            return (
+              <a
+                key={e.id}
+                href={e.url ?? "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all"
+              >
+                <div className="flex gap-4 items-start">
+                  <div className="size-14 shrink-0 rounded-lg bg-primary-container text-on-primary-container border-2 border-outline grid place-items-center font-display">
+                    <span className="text-[10px] font-bold uppercase">{d.toLocaleString("en", { month: "short" })}</span>
+                    <span className="text-lg font-bold leading-none -mt-0.5">{d.getDate()}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-semibold">{e.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {e.venue ?? "Berlin"}{e.district ? ` · ${e.district}` : ""} · {d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    {e.description && <p className="text-sm mt-2 line-clamp-2">{e.description}</p>}
+                    {Array.isArray(e.tags) && e.tags.length > 0 && (
+                      <div className="flex gap-1.5 mt-2 flex-wrap">
+                        {e.tags.slice(0, 5).map((t) => (
+                          <span key={t} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-container border border-outline/30">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-semibold">{e.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {e.venue ?? "Berlin"}{e.district ? ` · ${e.district}` : ""} · {d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                  {e.description && <p className="text-sm mt-2 line-clamp-2">{e.description}</p>}
-                  {Array.isArray(e.tags) && e.tags.length > 0 && (
-                    <div className="flex gap-1.5 mt-2 flex-wrap">
-                      {e.tags.slice(0, 5).map((t) => (
-                        <span key={t} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-container border border-outline/30">{t}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </a>
-          );
-        })}
-      </div>
+              </a>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
+
