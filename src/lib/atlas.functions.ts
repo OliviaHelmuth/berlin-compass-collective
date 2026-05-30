@@ -91,13 +91,22 @@ export const getEvents = createServerFn({ method: "GET" }).handler(async () => {
 
 
 export const getOpportunities = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await supabaseAdmin
-    .from("opportunities")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const [{ data: opps, error }, { data: programs, error: pErr }] = await Promise.all([
+    supabaseAdmin
+      .from("opportunities")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabaseAdmin
+      .from("locations")
+      .select("id, name, category, district, address, description, website, tags")
+      .in("category", ["accelerator", "incubator"])
+      .eq("approved", true)
+      .order("name"),
+  ]);
   if (error) throw new Error(error.message);
-  return data;
+  if (pErr) throw new Error(pErr.message);
+  return { opportunities: opps ?? [], programs: programs ?? [] };
 });
 
 export const submitReview = createServerFn({ method: "POST" })
