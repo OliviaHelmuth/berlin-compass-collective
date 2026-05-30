@@ -250,16 +250,26 @@ function Discover() {
                   {loc.district ?? "Berlin"}
                 </span>
                 {loc.website && (
-                  <a
-                    href={loc.website}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 hover:text-primary"
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.open(loc.website!, "_blank", "noreferrer");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.open(loc.website!, "_blank", "noreferrer");
+                      }
+                    }}
+                    className="flex items-center gap-1 hover:text-primary cursor-pointer"
                   >
                     <span className="material-symbols-rounded" style={{ fontSize: 14 }}>open_in_new</span>
                     Website
-                  </a>
+                  </span>
                 )}
               </div>
             </Link>
