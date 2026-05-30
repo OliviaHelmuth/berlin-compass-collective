@@ -14,7 +14,13 @@ const locationsQuery = queryOptions({
   queryFn: () => getLocations(),
 });
 
+const VALID_CATS: LocationCategory[] = ["coworking", "accelerator", "incubator", "university", "vc", "hub", "service"];
+
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { cat?: LocationCategory } => {
+    const cat = search.cat;
+    return typeof cat === "string" && (VALID_CATS as string[]).includes(cat) ? { cat: cat as LocationCategory } : {};
+  },
   head: () => ({
     meta: [
       { title: "Kiez Founders Berlin — your map to the ecosystem" },
@@ -84,21 +90,24 @@ function Hero() {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          {[
-            { icon: "groups", label: "Co-working" },
-            { icon: "rocket_launch", label: "Accelerators" },
-            { icon: "school", label: "Universities" },
-            { icon: "payments", label: "VCs" },
-            { icon: "event", label: "Events" },
-            { icon: "bolt", label: "Opportunities" },
-          ].map((c, i) => (
-            <div
+          {([
+            { icon: "groups", label: "Co-working", to: "/" as const, search: { cat: "coworking" as const }, hash: "discover" },
+            { icon: "rocket_launch", label: "Accelerators", to: "/" as const, search: { cat: "accelerator" as const }, hash: "discover" },
+            { icon: "school", label: "Universities", to: "/" as const, search: { cat: "university" as const }, hash: "discover" },
+            { icon: "payments", label: "VCs", to: "/" as const, search: { cat: "vc" as const }, hash: "discover" },
+            { icon: "event", label: "Events", to: "/events" as const },
+            { icon: "bolt", label: "Opportunities", to: "/opportunities" as const },
+          ] as const).map((c, i) => (
+            <Link
               key={c.label}
-              className={`p-4 rounded-2xl border-2 border-outline ${i % 3 === 0 ? "bg-accent text-accent-foreground" : "bg-surface"} shadow-brutal-sm`}
+              to={c.to}
+              search={"search" in c ? c.search : undefined}
+              hash={"hash" in c ? c.hash : undefined}
+              className={`p-4 rounded-2xl border-2 border-outline ${i % 3 === 0 ? "bg-accent text-accent-foreground" : "bg-surface"} shadow-brutal-sm hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-brutal transition-transform`}
             >
               <span className="material-symbols-rounded" style={{ fontSize: 28 }}>{c.icon}</span>
               <div className="mt-2 font-display font-bold text-sm">{c.label}</div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
@@ -221,10 +230,21 @@ function FeedRow({ title, icon, linkTo, children }: { title: string; icon: strin
 
 function Discover() {
   const { data: locations } = useSuspenseQuery(locationsQuery);
-  const [active, setActive] = useState<Set<LocationCategory>>(new Set());
-  const [view, setView] = useState<"feed" | "map">("feed");
+  const search = Route.useSearch();
+  
+  const [active, setActive] = useState<Set<LocationCategory>>(() => new Set(search.cat ? [search.cat] : []));
+  const [view, setView] = useState<"feed" | "map">(search.cat ? "map" : "feed");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (search.cat) {
+      setActive(new Set([search.cat]));
+      setView("map");
+      const el = document.getElementById("discover");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [search.cat]);
 
   const filtered = useMemo(() => {
     return locations.filter((l) => {
