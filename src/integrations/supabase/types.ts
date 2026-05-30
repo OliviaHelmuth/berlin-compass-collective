@@ -205,16 +205,21 @@ export type Database = {
       }
       profiles: {
         Row: {
+          arrival_status: string | null
           avatar_url: string | null
           background: string[]
           bio: string | null
           created_at: string
+          current_focus: string[]
           display_name: string
           district: string | null
+          german_level: string | null
           id: string
           industries: string[]
+          interests: string[]
           looking_for: string[]
           onboarded_at: string | null
+          residence_status: string | null
           role: string | null
           sector: string | null
           stage: string | null
@@ -222,16 +227,21 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          arrival_status?: string | null
           avatar_url?: string | null
           background?: string[]
           bio?: string | null
           created_at?: string
+          current_focus?: string[]
           display_name: string
           district?: string | null
+          german_level?: string | null
           id: string
           industries?: string[]
+          interests?: string[]
           looking_for?: string[]
           onboarded_at?: string | null
+          residence_status?: string | null
           role?: string | null
           sector?: string | null
           stage?: string | null
@@ -239,16 +249,21 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          arrival_status?: string | null
           avatar_url?: string | null
           background?: string[]
           bio?: string | null
           created_at?: string
+          current_focus?: string[]
           display_name?: string
           district?: string | null
+          german_level?: string | null
           id?: string
           industries?: string[]
+          interests?: string[]
           looking_for?: string[]
           onboarded_at?: string | null
+          residence_status?: string | null
           role?: string | null
           sector?: string | null
           stage?: string | null
