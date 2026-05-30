@@ -85,17 +85,16 @@ function Hero() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           {([
-            { icon: "groups", label: "Co-working", to: "/" as const, search: { cat: "coworking" as const }, hash: "discover" },
-            { icon: "rocket_launch", label: "Accelerators", to: "/" as const, search: { cat: "accelerator" as const }, hash: "discover" },
-            { icon: "school", label: "Universities", to: "/" as const, search: { cat: "university" as const }, hash: "discover" },
-            { icon: "payments", label: "VCs", to: "/" as const, search: { cat: "vc" as const }, hash: "discover" },
+            { icon: "groups", label: "Co-working", to: "/" as const, hash: "discover" },
+            { icon: "rocket_launch", label: "Accelerators", to: "/" as const, hash: "discover" },
+            { icon: "school", label: "Universities", to: "/" as const, hash: "discover" },
+            { icon: "payments", label: "VCs", to: "/" as const, hash: "discover" },
             { icon: "event", label: "Events", to: "/events" as const },
             { icon: "bolt", label: "Opportunities", to: "/opportunities" as const },
           ] as const).map((c, i) => (
             <Link
               key={c.label}
               to={c.to}
-              search={"search" in c ? c.search : undefined}
               hash={"hash" in c ? c.hash : undefined}
               className={`p-4 rounded-2xl border-2 border-outline ${i % 3 === 0 ? "bg-accent text-accent-foreground" : "bg-surface"} shadow-brutal-sm hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-brutal transition-transform`}
             >
