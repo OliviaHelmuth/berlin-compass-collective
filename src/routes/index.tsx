@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState, lazy, Suspense } from "react";
+import { useMemo, useState, useEffect, lazy, Suspense } from "react";
 import { getLocations } from "@/lib/atlas.functions";
 import { CATEGORIES, CATEGORY_LABEL, type LocationCategory } from "@/lib/categories";
 import { FilterChip } from "@/components/atlas/FilterChip";
@@ -12,6 +12,8 @@ const locationsQuery = queryOptions({
   queryFn: () => getLocations(),
 });
 
+const VALID_CATS: LocationCategory[] = ["coworking", "accelerator", "incubator", "university", "vc", "hub", "service"];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -21,6 +23,12 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "The connective layer for Berlin's startup ecosystem — places, events, opportunities, people." },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): { cat?: LocationCategory } => {
+    const cat = search.cat;
+    return typeof cat === "string" && (VALID_CATS as string[]).includes(cat)
+      ? { cat: cat as LocationCategory }
+      : {};
+  },
   loader: ({ context }) => context.queryClient.ensureQueryData(locationsQuery),
   component: Home,
   errorComponent: ({ error }) => <div className="p-8">Couldn't load: {error.message}</div>,
@@ -70,23 +78,30 @@ function Hero() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           {([
-            { icon: "groups", label: "Co-working", to: "/" as const, hash: "discover" },
-            { icon: "rocket_launch", label: "Accelerators", to: "/" as const, hash: "discover" },
-            { icon: "school", label: "Universities", to: "/" as const, hash: "discover" },
-            { icon: "payments", label: "VCs", to: "/" as const, hash: "discover" },
+            { icon: "groups", label: "Co-working", cat: "coworking" as const },
+            { icon: "rocket_launch", label: "Accelerators", cat: "accelerator" as const },
+            { icon: "school", label: "Universities", cat: "university" as const },
+            { icon: "payments", label: "VCs", cat: "vc" as const },
             { icon: "event", label: "Events", to: "/events" as const },
             { icon: "bolt", label: "Opportunities", to: "/opportunities" as const },
-          ] as const).map((c, i) => (
-            <Link
-              key={c.label}
-              to={c.to}
-              hash={"hash" in c ? c.hash : undefined}
-              className={`p-4 rounded-2xl border-2 border-outline ${i % 3 === 0 ? "bg-accent text-accent-foreground" : "bg-surface"} shadow-brutal-sm hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-brutal transition-transform`}
-            >
-              <span className="material-symbols-rounded" style={{ fontSize: 28 }}>{c.icon}</span>
-              <div className="mt-2 font-display font-bold text-sm">{c.label}</div>
-            </Link>
-          ))}
+          ] as const).map((c, i) => {
+            const className = `p-4 rounded-2xl border-2 border-outline ${i % 3 === 0 ? "bg-accent text-accent-foreground" : "bg-surface"} shadow-brutal-sm hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-brutal transition-transform`;
+            const inner = (
+              <>
+                <span className="material-symbols-rounded" style={{ fontSize: 28 }}>{c.icon}</span>
+                <div className="mt-2 font-display font-bold text-sm">{c.label}</div>
+              </>
+            );
+            return "cat" in c ? (
+              <Link key={c.label} to="/" search={{ cat: c.cat }} hash="discover" className={className}>
+                {inner}
+              </Link>
+            ) : (
+              <Link key={c.label} to={c.to} className={className}>
+                {inner}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -130,11 +145,22 @@ function HowItWorks() {
 
 function Discover() {
   const { data: locations } = useSuspenseQuery(locationsQuery);
+  const search = Route.useSearch();
 
-  const [active, setActive] = useState<Set<LocationCategory>>(() => new Set());
-  const [view, setView] = useState<"feed" | "map">("feed");
+  const [active, setActive] = useState<Set<LocationCategory>>(() => new Set(search.cat ? [search.cat] : []));
+  const [view, setView] = useState<"feed" | "map">(search.cat ? "map" : "feed");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (search.cat) {
+      setActive(new Set([search.cat]));
+      setView("map");
+      if (typeof document !== "undefined") {
+        document.getElementById("discover")?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [search.cat]);
 
 
   const filtered = useMemo(() => {
