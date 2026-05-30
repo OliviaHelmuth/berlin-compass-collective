@@ -10,6 +10,13 @@ const OnboardingSchema = z.object({
   industries: z.array(z.string().min(1).max(60)).max(40),
   looking_for: z.array(z.string().min(1).max(60)).max(40),
   background: z.array(z.string().min(1).max(60)).max(40),
+  arrival_status: z.string().max(60).optional().nullable(),
+  residence_status: z.string().max(60).optional().nullable(),
+  german_level: z.string().max(60).optional().nullable(),
+  current_focus: z.array(z.string().min(1).max(60)).max(40).optional(),
+  interests: z.array(z.string().min(1).max(60)).max(60).optional(),
+  district: z.string().max(80).optional().nullable(),
+  bio: z.string().max(500).optional().nullable(),
 });
 
 export const saveOnboarding = createServerFn({ method: "POST" })
@@ -31,12 +38,13 @@ export const getMyProfile = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, display_name, role, stage, industries, looking_for, background, onboarded_at")
+      .select("id, display_name, role, stage, industries, looking_for, background, arrival_status, residence_status, german_level, current_focus, interests, district, bio, onboarded_at")
       .eq("id", userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     return data;
   });
+
 
 export const getPersonalizedFeed = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
@@ -48,7 +56,7 @@ export const getPersonalizedFeed = createServerFn({ method: "POST" })
     if (data.userId) {
       const { data: p } = await supabaseAdmin
         .from("profiles")
-        .select("role, stage, industries, looking_for, background")
+        .select("role, stage, industries, looking_for, background, interests, current_focus")
         .eq("id", data.userId)
         .maybeSingle();
       if (p) user = p as UserProfileTags;

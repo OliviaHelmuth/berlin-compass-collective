@@ -6,6 +6,8 @@ export type UserProfileTags = {
   industries?: string[] | null;
   looking_for?: string[] | null;
   background?: string[] | null;
+  interests?: string[] | null;
+  current_focus?: string[] | null;
 };
 
 const norm = (s: string) => s.toLowerCase().trim();
@@ -18,8 +20,10 @@ export function scoreItem(
   if (item.category) itemTags.add(norm(item.category));
 
   let score = 0;
+  for (const t of user.interests ?? []) if (itemTags.has(norm(t))) score += 4;
   for (const t of user.industries ?? []) if (itemTags.has(norm(t))) score += 3;
   for (const t of user.looking_for ?? []) if (itemTags.has(norm(t))) score += 2;
+  for (const t of user.current_focus ?? []) if (itemTags.has(norm(t))) score += 2;
   if (user.stage && itemTags.has(norm(user.stage))) score += 1;
   if (user.role && itemTags.has(norm(user.role))) score += 1;
 
