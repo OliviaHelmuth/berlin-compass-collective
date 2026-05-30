@@ -180,7 +180,7 @@ export function AtlasMap({
           position: pos,
           map,
           title: loc.name,
-          icon: markerIcon(selectedId === loc.id),
+          icon: markerIcon(selectedId === loc.id, loc.muted),
         });
         marker.addListener("click", () => {
           onSelect?.(loc.id);
