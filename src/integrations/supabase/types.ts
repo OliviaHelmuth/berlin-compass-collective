@@ -17,10 +17,12 @@ export type Database = {
       events: {
         Row: {
           category: string | null
+          cover_url: string | null
           created_at: string
           description: string | null
           district: string | null
           ends_at: string | null
+          external_id: string | null
           host: string | null
           id: string
           source: string | null
@@ -33,10 +35,12 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           district?: string | null
           ends_at?: string | null
+          external_id?: string | null
           host?: string | null
           id?: string
           source?: string | null
@@ -49,10 +53,12 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           district?: string | null
           ends_at?: string | null
+          external_id?: string | null
           host?: string | null
           id?: string
           source?: string | null
