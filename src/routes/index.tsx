@@ -30,24 +30,11 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
-      setAuthChecked(true);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setUserId(s?.user?.id ?? null));
-    return () => sub.subscription.unsubscribe();
-  }, []);
-
   return (
     <div>
-      {authChecked && !userId && <Hero />}
-      {authChecked && userId && <PersonalizedStrip userId={userId} />}
+      <Hero />
       <Discover />
-      {authChecked && !userId && <HowItWorks />}
+      <HowItWorks />
     </div>
   );
 }
