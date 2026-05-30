@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +19,11 @@ import { Route as LocationIdRouteImport } from './routes/location.$id'
 const OpportunitiesRoute = OpportunitiesRouteImport.update({
   id: '/opportunities',
   path: '/opportunities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
 }
@@ -60,19 +68,33 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/events' | '/login' | '/opportunities' | '/location/$id'
+  fullPaths:
+    | '/'
+    | '/events'
+    | '/login'
+    | '/onboarding'
+    | '/opportunities'
+    | '/location/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/events' | '/login' | '/opportunities' | '/location/$id'
+  to:
+    | '/'
+    | '/events'
+    | '/login'
+    | '/onboarding'
+    | '/opportunities'
+    | '/location/$id'
   id:
     | '__root__'
     | '/'
     | '/events'
     | '/login'
+    | '/onboarding'
     | '/opportunities'
     | '/location/$id'
   fileRoutesById: FileRoutesById
@@ -81,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRoute
   LocationIdRoute: typeof LocationIdRoute
 }
@@ -92,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/opportunities'
       fullPath: '/opportunities'
       preLoaderRoute: typeof OpportunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -129,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRoute,
   LocationIdRoute: LocationIdRoute,
 }
