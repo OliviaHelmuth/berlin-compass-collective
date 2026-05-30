@@ -82,9 +82,9 @@ function markerIcon(active: boolean): google.maps.Symbol {
   return {
     path: google.maps.SymbolPath.CIRCLE,
     scale: active ? 13 : 9,
-    fillColor: active ? "#c7f73b" : "#6d28d9",
+    fillColor: active ? "#6d28d9" : "#c7f73b",
     fillOpacity: 1,
-    strokeColor: active ? "#6d28d9" : "#ffffff",
+    strokeColor: active ? "#c7f73b" : "#3b2470",
     strokeWeight: active ? 3 : 2,
   };
 }

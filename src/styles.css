@@ -54,15 +54,15 @@
 }
 
 :root {
-  /* Purple #6D28D9 → oklch */
-  --primary: oklch(0.46 0.24 290);
-  --primary-foreground: oklch(0.985 0.005 290);
-  --primary-container: oklch(0.94 0.04 290);
-  --on-primary-container: oklch(0.22 0.12 290);
+  /* Lime #C7F23B → primary highlight */
+  --primary: oklch(0.92 0.18 125);
+  --primary-foreground: oklch(0.2 0.04 280);
+  --primary-container: oklch(0.96 0.12 125);
+  --on-primary-container: oklch(0.25 0.08 130);
 
-  /* Lime #C7F23B accent */
-  --accent: oklch(0.92 0.18 125);
-  --accent-foreground: oklch(0.2 0.04 280);
+  /* Purple #6D28D9 kept as secondary accent */
+  --accent: oklch(0.46 0.24 290);
+  --accent-foreground: oklch(0.985 0.005 290);
 
   --background: oklch(0.985 0.005 300);
   --foreground: oklch(0.2 0.04 280);
@@ -79,7 +79,6 @@
   --secondary-foreground: oklch(0.2 0.04 280);
   --muted: oklch(0.94 0.01 300);
   --muted-foreground: oklch(0.5 0.02 290);
-  --accent-foreground: oklch(0.2 0.04 280);
 
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.985 0 0);
@@ -87,19 +86,19 @@
   --outline: oklch(0.25 0.02 290);
   --border: oklch(0.88 0.01 290);
   --input: oklch(0.92 0.01 290);
-  --ring: oklch(0.46 0.24 290);
+  --ring: oklch(0.92 0.18 125);
 
   --radius: 0.875rem;
 }
 
 .dark {
-  --primary: oklch(0.7 0.2 290);
-  --primary-foreground: oklch(0.15 0.04 290);
-  --primary-container: oklch(0.3 0.14 290);
-  --on-primary-container: oklch(0.94 0.04 290);
+  --primary: oklch(0.88 0.18 125);
+  --primary-foreground: oklch(0.15 0.02 280);
+  --primary-container: oklch(0.35 0.12 125);
+  --on-primary-container: oklch(0.96 0.15 125);
 
-  --accent: oklch(0.88 0.18 125);
-  --accent-foreground: oklch(0.15 0.02 280);
+  --accent: oklch(0.7 0.2 290);
+  --accent-foreground: oklch(0.15 0.04 290);
 
   --background: oklch(0.16 0.02 290);
   --foreground: oklch(0.96 0.01 290);
@@ -123,7 +122,7 @@
   --outline: oklch(0.88 0.02 290);
   --border: oklch(0.32 0.03 290);
   --input: oklch(0.32 0.03 290);
-  --ring: oklch(0.7 0.2 290);
+  --ring: oklch(0.88 0.18 125);
 }
 
 @layer base {

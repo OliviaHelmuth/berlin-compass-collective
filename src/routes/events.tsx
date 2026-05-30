@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X, CalendarIcon } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { getEvents } from "@/lib/atlas.functions";
+import { AtlasMap } from "@/components/atlas/AtlasMap";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -71,7 +72,9 @@ function presetRange(preset: DatePreset): { from?: Date; to?: Date } {
 }
 
 function EventsPage() {
-  const { data: events } = useSuspenseQuery(eventsQuery);
+  const { data } = useSuspenseQuery(eventsQuery);
+  const events = data.events;
+  const locations = data.locations;
   const qc = useQueryClient();
   const triggered = useRef(false);
 
@@ -157,12 +160,35 @@ function EventsPage() {
     setCustomRange(undefined);
   };
 
+  // Locations to plot: those matched by at least one event currently in the filtered list.
+  const mapLocations = useMemo(() => {
+    const ids = new Set(filtered.map((e) => e.location_id).filter(Boolean) as string[]);
+    return locations
+      .filter((l) => ids.has(l.id) && l.lat != null && l.lng != null)
+      .map((l) => ({
+        id: l.id,
+        name: l.name,
+        category: l.category as any,
+        lat: l.lat as any,
+        lng: l.lng as any,
+        district: l.district ?? null,
+        address: l.address ?? null,
+      }));
+  }, [filtered, locations]);
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       <header>
         <h1 className="font-display text-4xl font-bold tracking-tight">Events</h1>
         <p className="text-muted-foreground mt-2">Upcoming events for Berlin founders.</p>
       </header>
+
+      {mapLocations.length > 0 && (
+        <div className="h-[320px] rounded-2xl overflow-hidden border-2 border-outline shadow-brutal-sm">
+          <AtlasMap locations={mapLocations} />
+        </div>
+      )}
+
 
       {/* Filters */}
       <div className="rounded-xl border-2 border-outline bg-surface p-4 space-y-3">
