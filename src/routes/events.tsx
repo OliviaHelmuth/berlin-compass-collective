@@ -160,7 +160,17 @@ function EventsPage() {
     setCustomRange(undefined);
   };
 
-  // Plot every known location (orgs, VCs, universities, coworking, hubs…) just like the Discover map.
+  // View toggle (matches Discover)
+  const [view, setView] = useState<"list" | "map">("list");
+
+  // IDs of locations that have at least one upcoming event in the *filtered* list.
+  const activeLocationIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const e of filtered) if (e.location_id) s.add(e.location_id);
+    return s;
+  }, [filtered]);
+
+  // Plot every known location; mute (grey) the ones without upcoming events.
   const mapLocations = useMemo(() => {
     return locations
       .filter((l) => l.lat != null && l.lng != null)
@@ -172,21 +182,45 @@ function EventsPage() {
         lng: l.lng as any,
         district: l.district ?? null,
         address: l.address ?? null,
+        muted: !activeLocationIds.has(l.id),
       }));
-  }, [locations]);
+  }, [locations, activeLocationIds]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <header>
-        <h1 className="font-display text-4xl font-bold tracking-tight">Events</h1>
-        <p className="text-muted-foreground mt-2">Upcoming events for Berlin founders.</p>
+      <header className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="font-display text-4xl font-bold tracking-tight">Events</h1>
+          <p className="text-muted-foreground mt-2">Upcoming events for Berlin founders.</p>
+        </div>
+        <div className="flex p-1 bg-surface-container rounded-lg border-2 border-outline">
+          <button
+            onClick={() => setView("list")}
+            className={cn(
+              "px-4 py-1.5 text-xs font-semibold rounded-md transition-all",
+              view === "list" ? "bg-accent text-accent-foreground shadow-brutal-sm" : "text-muted-foreground",
+            )}
+          >
+            List
+          </button>
+          <button
+            onClick={() => setView("map")}
+            className={cn(
+              "px-4 py-1.5 text-xs font-semibold rounded-md transition-all",
+              view === "map" ? "bg-accent text-accent-foreground shadow-brutal-sm" : "text-muted-foreground",
+            )}
+          >
+            Map
+          </button>
+        </div>
       </header>
 
-      {mapLocations.length > 0 && (
-        <div className="h-[320px] rounded-2xl overflow-hidden border-2 border-outline shadow-brutal-sm">
+      {view === "map" && mapLocations.length > 0 && (
+        <div className="h-[calc(100vh-260px)] min-h-[420px] rounded-2xl overflow-hidden border-2 border-outline shadow-brutal-sm">
           <AtlasMap locations={mapLocations} />
         </div>
       )}
+
 
 
       {/* Filters */}
