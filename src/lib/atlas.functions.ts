@@ -67,7 +67,7 @@ export const getLocation = createServerFn({ method: "GET" })
   });
 
 export const getEvents = createServerFn({ method: "GET" }).handler(async () => {
-  await ensureWelcomeBerlinEvents();
+  await Promise.allSettled([ensureWelcomeBerlinEvents(), ensureBerlinPartnerEvents()]);
 
   const [{ data: events, error }, { data: locations, error: lErr }] = await Promise.all([
     supabaseAdmin
