@@ -26,7 +26,11 @@ export async function ensureWelcomeBerlinEvents() {
     .gte("starts_at", now);
 
   if (error || (count ?? 0) > 0) return;
-  await syncWelcomeBerlinEvents();
+  try {
+    await syncWelcomeBerlinEvents();
+  } catch (syncError) {
+    console.error("Welcome Berlin event sync failed", syncError);
+  }
 }
 
 export async function syncWelcomeBerlinEvents(): Promise<{ parsed: number; upserted: number }> {
