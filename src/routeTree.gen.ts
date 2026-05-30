@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocationIdRouteImport } from './routes/location.$id'
+import { Route as ApiPublicCronScrapeEventsRouteImport } from './routes/api/public/cron/scrape-events'
 
 const OpportunitiesRoute = OpportunitiesRouteImport.update({
   id: '/opportunities',
@@ -46,6 +47,12 @@ const LocationIdRoute = LocationIdRouteImport.update({
   path: '/location/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronScrapeEventsRoute =
+  ApiPublicCronScrapeEventsRouteImport.update({
+    id: '/api/public/cron/scrape-events',
+    path: '/api/public/cron/scrape-events',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
+  '/api/public/cron/scrape-events': typeof ApiPublicCronScrapeEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +70,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
+  '/api/public/cron/scrape-events': typeof ApiPublicCronScrapeEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +80,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/location/$id': typeof LocationIdRoute
+  '/api/public/cron/scrape-events': typeof ApiPublicCronScrapeEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +91,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/location/$id'
+    | '/api/public/cron/scrape-events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +100,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/location/$id'
+    | '/api/public/cron/scrape-events'
   id:
     | '__root__'
     | '/'
@@ -97,6 +109,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/opportunities'
     | '/location/$id'
+    | '/api/public/cron/scrape-events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +119,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRoute
   LocationIdRoute: typeof LocationIdRoute
+  ApiPublicCronScrapeEventsRoute: typeof ApiPublicCronScrapeEventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -152,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/scrape-events': {
+      id: '/api/public/cron/scrape-events'
+      path: '/api/public/cron/scrape-events'
+      fullPath: '/api/public/cron/scrape-events'
+      preLoaderRoute: typeof ApiPublicCronScrapeEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -162,6 +183,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRoute,
   LocationIdRoute: LocationIdRoute,
+  ApiPublicCronScrapeEventsRoute: ApiPublicCronScrapeEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
