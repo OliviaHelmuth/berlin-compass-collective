@@ -117,16 +117,30 @@ function EcosystemPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-        {CATEGORIES.map((c) => (
-          <FilterChip
-            key={c.id}
-            label={c.label}
-            icon={c.icon}
-            active={active.has(c.id)}
-            onClick={() => toggle(c.id)}
-          />
-        ))}
+      <div className="space-y-2">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          {CATEGORIES.map((c) => (
+            <FilterChip
+              key={c.id}
+              label={c.label}
+              icon={c.icon}
+              active={active.has(c.id)}
+              onClick={() => toggle(c.id)}
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground shrink-0 pr-1">Topics</span>
+          {TOPIC_FILTERS.map((t) => (
+            <FilterChip
+              key={t.id}
+              label={t.label}
+              icon={t.icon}
+              active={activeTopics.has(t.id)}
+              onClick={() => toggleTopic(t.id)}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-[1fr_420px] gap-6">
