@@ -215,9 +215,11 @@ export function AtlasMap({
   useEffect(() => {
     if (!ready) return;
     markersRef.current.forEach((m, id) => {
-      m.setIcon(markerIcon(selectedId === id));
+      const loc = locations.find((l) => l.id === id);
+      m.setIcon(markerIcon(selectedId === id, loc?.muted));
     });
-  }, [selectedId, ready]);
+  }, [selectedId, ready, locations]);
+
 
   if (error) {
     return (
