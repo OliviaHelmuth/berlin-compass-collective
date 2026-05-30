@@ -14,6 +14,7 @@ import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MyHubRouteImport } from './routes/my-hub'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as MatchRouteImport } from './routes/match'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as EcosystemRouteImport } from './routes/ecosystem'
@@ -46,6 +47,11 @@ const MyHubRoute = MyHubRouteImport.update({
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchRoute = MatchRouteImport.update({
+  id: '/match',
+  path: '/match',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/ecosystem': typeof EcosystemRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/match': typeof MatchRoute
   '/messages': typeof MessagesRoute
   '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/ecosystem': typeof EcosystemRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/match': typeof MatchRoute
   '/messages': typeof MessagesRoute
   '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/ecosystem': typeof EcosystemRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/match': typeof MatchRoute
   '/messages': typeof MessagesRoute
   '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/ecosystem'
     | '/events'
     | '/login'
+    | '/match'
     | '/messages'
     | '/my-hub'
     | '/onboarding'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/ecosystem'
     | '/events'
     | '/login'
+    | '/match'
     | '/messages'
     | '/my-hub'
     | '/onboarding'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/ecosystem'
     | '/events'
     | '/login'
+    | '/match'
     | '/messages'
     | '/my-hub'
     | '/onboarding'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   EcosystemRoute: typeof EcosystemRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
+  MatchRoute: typeof MatchRoute
   MessagesRoute: typeof MessagesRoute
   MyHubRoute: typeof MyHubRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -237,6 +250,13 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/match': {
+      id: '/match'
+      path: '/match'
+      fullPath: '/match'
+      preLoaderRoute: typeof MatchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcosystemRoute: EcosystemRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
+  MatchRoute: MatchRoute,
   MessagesRoute: MessagesRoute,
   MyHubRoute: MyHubRoute,
   OnboardingRoute: OnboardingRoute,
@@ -317,3 +338,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
