@@ -198,7 +198,7 @@ export function AtlasMap({
         existing.set(loc.id, marker);
       } else {
         marker.setPosition(pos);
-        marker.setIcon(markerIcon(selectedId === loc.id));
+        marker.setIcon(markerIcon(selectedId === loc.id, loc.muted));
       }
     });
 
