@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PresentationRouteImport } from './routes/presentation'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MyHubRouteImport } from './routes/my-hub'
@@ -27,6 +28,11 @@ import { Route as ApiPublicAdminFixStartupMapWebsitesRouteImport } from './route
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PresentationRoute = PresentationRouteImport.update({
+  id: '/presentation',
+  path: '/presentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OpportunitiesRoute = OpportunitiesRouteImport.update({
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/presentation': typeof PresentationRoute
   '/settings': typeof SettingsRoute
   '/location/$id': typeof LocationIdRoute
   '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/presentation': typeof PresentationRoute
   '/settings': typeof SettingsRoute
   '/location/$id': typeof LocationIdRoute
   '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/presentation': typeof PresentationRoute
   '/settings': typeof SettingsRoute
   '/location/$id': typeof LocationIdRoute
   '/api/public/admin/fix-startup-map-websites': typeof ApiPublicAdminFixStartupMapWebsitesRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/my-hub'
     | '/onboarding'
     | '/opportunities'
+    | '/presentation'
     | '/settings'
     | '/location/$id'
     | '/api/public/admin/fix-startup-map-websites'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/my-hub'
     | '/onboarding'
     | '/opportunities'
+    | '/presentation'
     | '/settings'
     | '/location/$id'
     | '/api/public/admin/fix-startup-map-websites'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/my-hub'
     | '/onboarding'
     | '/opportunities'
+    | '/presentation'
     | '/settings'
     | '/location/$id'
     | '/api/public/admin/fix-startup-map-websites'
@@ -208,6 +220,7 @@ export interface RootRouteChildren {
   MyHubRoute: typeof MyHubRoute
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRoute
+  PresentationRoute: typeof PresentationRoute
   SettingsRoute: typeof SettingsRoute
   LocationIdRoute: typeof LocationIdRoute
   ApiPublicAdminFixStartupMapWebsitesRoute: typeof ApiPublicAdminFixStartupMapWebsitesRoute
@@ -222,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/presentation': {
+      id: '/presentation'
+      path: '/presentation'
+      fullPath: '/presentation'
+      preLoaderRoute: typeof PresentationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/opportunities': {
@@ -328,6 +348,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyHubRoute: MyHubRoute,
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRoute,
+  PresentationRoute: PresentationRoute,
   SettingsRoute: SettingsRoute,
   LocationIdRoute: LocationIdRoute,
   ApiPublicAdminFixStartupMapWebsitesRoute:
@@ -338,3 +359,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

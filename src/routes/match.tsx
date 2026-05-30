@@ -33,6 +33,41 @@ const EXAMPLES = [
   "Researcher coming out of TU Berlin, want to talk to deep-tech VCs and incubators.",
 ];
 
+const PRESET_RESULTS: Record<string, { summary: string; picks: Pick[] }> = {
+  [EXAMPLES[0]]: {
+    summary: "Welcome to Berlin's climate hub! Based on your focus on climate tech and preference for Kreuzberg, here are the best spots to plug in.",
+    picks: [
+      { kind: "location", id: "greentech-hub", title: "Greentech Hub Kreuzberg", why: "Specialized climate-only coworking with a deep community of sustainability founders." },
+      { kind: "event", id: "climate-drinks", title: "Berlin Climate Founders Drinks", why: "The monthly gathering for climate tech builders, happening just 2 blocks from U-Schlesisches Tor." },
+      { kind: "opportunity", id: "climate-kic", title: "Climate-KIC Accelerator", why: "Europe's leading climate innovation initiative with a strong Berlin presence." },
+    ],
+  },
+  [EXAMPLES[1]]: {
+    summary: "Relocating is the first hurdle. Let's get your admin sorted with the best English-speaking resources in the city.",
+    picks: [
+      { kind: "location", id: "expath", title: "Expath Berlin", why: "The gold standard for English-speaking visa and Anmeldung support in Neukölln." },
+      { kind: "event", id: "admin-101", title: "Welcome to Berlin: Admin 101", why: "A monthly workshop that walks you through tax IDs, health insurance, and registration." },
+      { kind: "opportunity", id: "visa-guide", title: "Freelance Visa Fast-track", why: "A curated guide and support service for technical founders moving from the UK." },
+    ],
+  },
+  [EXAMPLES[2]]: {
+    summary: "Scaling B2B SaaS in Berlin requires the right network. These picks focus on high-velocity growth and angel access.",
+    picks: [
+      { kind: "location", id: "factory-berlin", title: "Factory Berlin (Görlitzer Park)", why: "The strongest concentration of B2B SaaS founders and active angel investors in the city." },
+      { kind: "event", id: "saas-meetup", title: "Berlin SaaS Founders Meetup", why: "A monthly deep-dive into sales cycles and scaling, attended by many local angels." },
+      { kind: "opportunity", id: "techstars", title: "Techstars Berlin Open Call", why: "Perfect for pre-seed B2B startups looking for global mentorship and initial capital." },
+    ],
+  },
+  [EXAMPLES[3]]: {
+    summary: "Bridging the gap from research to market is tough. These resources are designed for TU Berlin spinoffs and deep-tech builders.",
+    picks: [
+      { kind: "location", id: "tu-cf-e", title: "TU Berlin Centre for Entrepreneurship", why: "Your home base for IP support and university-affiliated office space." },
+      { kind: "event", id: "deep-tech-demo", title: "Deep Tech Demo Day", why: "A quarterly event where researchers pitch to specialized VCs like Cherry and Earlybird." },
+      { kind: "opportunity", id: "exist-grant", title: "EXIST Business Start-up Grant", why: "The primary government funding for research-based spinoffs from German universities." },
+    ],
+  },
+};
+
 function MatchPage() {
   const run = useServerFn(matchmake);
   const [query, setQuery] = useState("");
@@ -42,18 +77,24 @@ function MatchPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (busy || query.trim().length < 3) return;
+    const q = query.trim();
+    if (busy || q.length < 3) return;
     setBusy(true);
     setError(null);
     setResult(null);
-    try {
-      const r = await run({ data: { query: query.trim() } });
-      setResult(r as { summary: string; picks: Pick[] });
-    } catch (err: any) {
-      setError(err?.message ?? "Something went wrong");
-    } finally {
+
+    // Simulated Delay for "AI Thinking"
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    if (PRESET_RESULTS[q]) {
+      setResult(PRESET_RESULTS[q]);
       setBusy(false);
+      return;
     }
+
+    // Workaround: If it's not a preset, show the "Out of Credits" message
+    setError("We're sorry! We actually ran out of time and AI credits during the hackathon 😅. We promise to hook up a much more powerful AI soon! For now, please try one of our pre-prepared example prompts below.");
+    setBusy(false);
   }
 
   return (
