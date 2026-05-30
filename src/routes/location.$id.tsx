@@ -13,7 +13,7 @@ const locationQuery = (id: string) =>
 export const Route = createFileRoute("/location/$id")({
   head: () => ({
     meta: [
-      { title: "Location — Berlin Founder Atlas" },
+      { title: "Location — Kiez Founders Berlin" },
       { name: "description", content: "Details, reviews and community discussion for this Berlin startup ecosystem location." },
     ],
   }),

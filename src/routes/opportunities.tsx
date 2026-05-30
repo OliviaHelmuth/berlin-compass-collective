@@ -12,7 +12,7 @@ const oppsQuery = queryOptions({ queryKey: ["opportunities"], queryFn: () => get
 export const Route = createFileRoute("/opportunities")({
   head: () => ({
     meta: [
-      { title: "Opportunities — Berlin Founder Atlas" },
+      { title: "Opportunities — Kiez Founders Berlin" },
       { name: "description", content: "Accelerators, incubators, grants, office hours and co-founder searches in Berlin." },
       { property: "og:title", content: "Berlin startup opportunities" },
       { property: "og:description", content: "Programs, open calls, grants, and office hours for Berlin founders." },

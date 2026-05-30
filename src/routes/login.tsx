@@ -6,7 +6,7 @@ import { lovable } from "@/integrations/lovable/index";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in — Berlin Founder Atlas" },
+      { title: "Sign in — Kiez Founders Berlin" },
       { name: "description", content: "Sign in to review hubs, RSVP to events and submit opportunities." },
     ],
   }),
@@ -61,7 +61,7 @@ function LoginPage() {
     <div className="min-h-[calc(100vh-4rem)] grid place-items-center px-4 py-10">
       <div className="w-full max-w-md p-6 rounded-2xl bg-surface border-2 border-outline shadow-brutal">
         <Link to="/" className="text-xs font-semibold text-muted-foreground hover:text-primary uppercase tracking-widest">← Back</Link>
-        <h1 className="font-display text-3xl font-bold mt-3">{mode === "signin" ? "Welcome back" : "Join the Atlas"}</h1>
+        <h1 className="font-display text-3xl font-bold mt-3">{mode === "signin" ? "Welcome back" : "Join Kiez Founders"}</h1>
         <p className="text-sm text-muted-foreground mt-1">Review hubs, RSVP events, submit your favourites.</p>
 
         <button

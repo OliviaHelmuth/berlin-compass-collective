@@ -35,7 +35,7 @@ export async function ensureWelcomeBerlinEvents() {
 
 export async function syncWelcomeBerlinEvents(): Promise<{ parsed: number; upserted: number }> {
   const response = await fetch(WELCOME_EVENTS_URL, {
-    headers: { "User-Agent": "Berlin Founder Atlas event importer" },
+    headers: { "User-Agent": "Kiez Founders Berlin event importer" },
   });
   if (!response.ok) throw new Error(`Welcome Berlin returned ${response.status}`);
 
