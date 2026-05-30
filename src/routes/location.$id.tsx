@@ -41,7 +41,7 @@ function useCurrentUserId() {
 function LocationPage() {
   const { id } = Route.useParams();
   const { data } = useSuspenseQuery(locationQuery(id));
-  const { location, reviews, posts, avgRating, recommendPct } = data;
+  const { location, reviews, posts, events, avgRating, recommendPct } = data;
   const uid = useCurrentUserId();
 
   return (
