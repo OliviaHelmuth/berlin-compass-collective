@@ -192,6 +192,18 @@ function EcosystemPage() {
               {loc.description && (
                 <p className="text-sm text-muted-foreground leading-snug line-clamp-2 mb-3">{loc.description}</p>
               )}
+              {(loc as any).review_count > 0 && (
+                <div className="flex items-center gap-2 mb-2 text-[11px]">
+                  <span className="font-bold">★ {(loc as any).avg_rating?.toFixed(1)}</span>
+                  <span className="text-muted-foreground">({(loc as any).review_count} reviews)</span>
+                  {(loc as any).review_count >= 5 && (
+                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-[9px]">
+                      Community favorite
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <span className="material-symbols-rounded" style={{ fontSize: 14 }}>place</span>
