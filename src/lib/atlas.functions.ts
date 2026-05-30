@@ -16,24 +16,30 @@ export const getLocations = createServerFn({ method: "GET" }).handler(async () =
 export const getLocation = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    const [{ data: location, error }, { data: reviews, error: rErr }] = await Promise.all([
+    const [{ data: location, error }, { data: reviews, error: rErr }, { data: posts, error: pErr }] = await Promise.all([
       supabaseAdmin.from("locations").select("*").eq("id", data.id).maybeSingle(),
       supabaseAdmin
         .from("reviews")
-        .select("id, rating, would_recommend, pros, cons, comment, created_at, user_id, profiles:profiles!reviews_user_id_fkey(display_name, avatar_url)")
+        .select("id, rating, would_recommend, pros, cons, comment, created_at, user_id, author:profiles!reviews_user_id_profiles_fkey(display_name, avatar_url)")
+        .eq("location_id", data.id)
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("location_posts")
+        .select("id, body, created_at, user_id, author:profiles!location_posts_user_id_fkey(display_name, avatar_url)")
         .eq("location_id", data.id)
         .order("created_at", { ascending: false }),
     ]);
     if (error) throw new Error(error.message);
     if (!location) throw new Error("Location not found");
     if (rErr) throw new Error(rErr.message);
+    if (pErr) throw new Error(pErr.message);
     const avgRating = reviews && reviews.length > 0
       ? reviews.reduce((s, r) => s + (r.rating ?? 0), 0) / reviews.length
       : null;
     const recommendPct = reviews && reviews.length > 0
       ? Math.round((reviews.filter((r) => r.would_recommend).length / reviews.length) * 100)
       : null;
-    return { location, reviews: reviews ?? [], avgRating, recommendPct };
+    return { location, reviews: reviews ?? [], posts: posts ?? [], avgRating, recommendPct };
   });
 
 export const getEvents = createServerFn({ method: "GET" }).handler(async () => {
