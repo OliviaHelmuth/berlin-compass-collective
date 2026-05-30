@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState, lazy, Suspense } from "react";
+import { useMemo, useState, useEffect, lazy, Suspense } from "react";
 import { getLocations } from "@/lib/atlas.functions";
 import { CATEGORIES, CATEGORY_LABEL, type LocationCategory } from "@/lib/categories";
 import { FilterChip } from "@/components/atlas/FilterChip";
@@ -12,6 +12,8 @@ const locationsQuery = queryOptions({
   queryFn: () => getLocations(),
 });
 
+const VALID_CATS: LocationCategory[] = ["coworking", "accelerator", "incubator", "university", "vc", "hub", "service"];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -21,6 +23,12 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "The connective layer for Berlin's startup ecosystem — places, events, opportunities, people." },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): { cat?: LocationCategory } => {
+    const cat = search.cat;
+    return typeof cat === "string" && (VALID_CATS as string[]).includes(cat)
+      ? { cat: cat as LocationCategory }
+      : {};
+  },
   loader: ({ context }) => context.queryClient.ensureQueryData(locationsQuery),
   component: Home,
   errorComponent: ({ error }) => <div className="p-8">Couldn't load: {error.message}</div>,
