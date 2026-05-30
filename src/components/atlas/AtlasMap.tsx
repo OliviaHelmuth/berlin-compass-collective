@@ -80,7 +80,17 @@ function isDarkMode() {
   return document.documentElement.classList.contains("dark");
 }
 
-function markerIcon(active: boolean): google.maps.Symbol {
+function markerIcon(active: boolean, muted?: boolean): google.maps.Symbol {
+  if (muted) {
+    return {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 6,
+      fillColor: "#9ca3af",
+      fillOpacity: 0.7,
+      strokeColor: "#ffffff",
+      strokeWeight: 1.5,
+    };
+  }
   return {
     path: google.maps.SymbolPath.CIRCLE,
     scale: active ? 13 : 9,
@@ -90,6 +100,7 @@ function markerIcon(active: boolean): google.maps.Symbol {
     strokeWeight: active ? 3 : 2,
   };
 }
+
 
 export function AtlasMap({
   locations,
