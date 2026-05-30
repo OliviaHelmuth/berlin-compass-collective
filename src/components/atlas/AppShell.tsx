@@ -6,6 +6,8 @@ const NAV = [
   { to: "/", label: "Discover", icon: "explore" },
   { to: "/events", label: "Events", icon: "event" },
   { to: "/opportunities", label: "Opportunities", icon: "bolt" },
+  { to: "/my-hub", label: "My Hub", icon: "hub" },
+  { to: "/messages", label: "Messages", icon: "chat" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

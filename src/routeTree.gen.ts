@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as MyHubRouteImport } from './routes/my-hub'
+import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,6 +35,16 @@ const OpportunitiesRoute = OpportunitiesRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyHubRoute = MyHubRouteImport.update({
+  id: '/my-hub',
+  path: '/my-hub',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -78,6 +90,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
+  '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/settings': typeof SettingsRoute
@@ -90,6 +104,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
+  '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/settings': typeof SettingsRoute
@@ -103,6 +119,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
+  '/messages': typeof MessagesRoute
+  '/my-hub': typeof MyHubRoute
   '/onboarding': typeof OnboardingRoute
   '/opportunities': typeof OpportunitiesRoute
   '/settings': typeof SettingsRoute
@@ -117,6 +135,8 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/messages'
+    | '/my-hub'
     | '/onboarding'
     | '/opportunities'
     | '/settings'
@@ -129,6 +149,8 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/messages'
+    | '/my-hub'
     | '/onboarding'
     | '/opportunities'
     | '/settings'
@@ -141,6 +163,8 @@ export interface FileRouteTypes {
     | '/'
     | '/events'
     | '/login'
+    | '/messages'
+    | '/my-hub'
     | '/onboarding'
     | '/opportunities'
     | '/settings'
@@ -154,6 +178,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
+  MessagesRoute: typeof MessagesRoute
+  MyHubRoute: typeof MyHubRoute
   OnboardingRoute: typeof OnboardingRoute
   OpportunitiesRoute: typeof OpportunitiesRoute
   SettingsRoute: typeof SettingsRoute
@@ -184,6 +210,20 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-hub': {
+      id: '/my-hub'
+      path: '/my-hub'
+      fullPath: '/my-hub'
+      preLoaderRoute: typeof MyHubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -242,6 +282,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
+  MessagesRoute: MessagesRoute,
+  MyHubRoute: MyHubRoute,
   OnboardingRoute: OnboardingRoute,
   OpportunitiesRoute: OpportunitiesRoute,
   SettingsRoute: SettingsRoute,
