@@ -27,6 +27,7 @@ function LoginPage() {
     setErr(null);
     setLoading(true);
     try {
+      let isNew = false;
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -40,8 +41,9 @@ function LoginPage() {
           },
         });
         if (error) throw error;
+        isNew = true;
       }
-      navigate({ to: "/" });
+      navigate({ to: isNew ? "/onboarding" : "/" });
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
