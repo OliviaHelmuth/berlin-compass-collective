@@ -240,12 +240,13 @@ function EcosystemPage() {
       </div>
 
       <Link
-        to="/onboarding"
+        to="/match"
         className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-30 flex items-center gap-2 bg-accent text-accent-foreground px-5 py-3.5 rounded-2xl border-2 border-outline shadow-lime font-semibold text-sm active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
       >
         <span className="material-symbols-rounded" style={{ fontSize: 20 }}>auto_awesome</span>
-        Get matched
+        Get matched by AI
       </Link>
+
     </div>
   );
 }
