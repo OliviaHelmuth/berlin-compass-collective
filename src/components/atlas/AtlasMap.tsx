@@ -11,7 +11,9 @@ export type AtlasLocation = {
   lng: number | string;
   district: string | null;
   address: string | null;
+  muted?: boolean;
 };
+
 
 const BERLIN_CENTER = { lat: 52.520008, lng: 13.404954 };
 const BROWSER_KEY = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined;
