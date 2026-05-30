@@ -9,6 +9,11 @@ import {
   INDUSTRY_GROUPS,
   LOOKING_FOR,
   BACKGROUNDS,
+  ARRIVAL_STATUS,
+  RESIDENCE_STATUS,
+  GERMAN_LEVEL,
+  CURRENT_FOCUS,
+  INTERESTS,
 } from "@/lib/tags";
 
 export const Route = createFileRoute("/onboarding")({
@@ -21,15 +26,33 @@ export const Route = createFileRoute("/onboarding")({
   component: OnboardingPage,
 });
 
+type ArrayKey = "industries" | "looking_for" | "background" | "current_focus" | "interests";
+
 type Answers = {
   role: string;
   stage: string;
   industries: string[];
   looking_for: string[];
   background: string[];
+  arrival_status: string;
+  residence_status: string;
+  german_level: string;
+  current_focus: string[];
+  interests: string[];
 };
 
-const EMPTY: Answers = { role: "", stage: "", industries: [], looking_for: [], background: [] };
+const EMPTY: Answers = {
+  role: "",
+  stage: "",
+  industries: [],
+  looking_for: [],
+  background: [],
+  arrival_status: "",
+  residence_status: "",
+  german_level: "",
+  current_focus: [],
+  interests: [],
+};
 
 function OnboardingPage() {
   const navigate = useNavigate();
@@ -57,6 +80,11 @@ function OnboardingPage() {
             industries: p.industries ?? [],
             looking_for: p.looking_for ?? [],
             background: p.background ?? [],
+            arrival_status: p.arrival_status ?? "",
+            residence_status: p.residence_status ?? "",
+            german_level: p.german_level ?? "",
+            current_focus: p.current_focus ?? [],
+            interests: p.interests ?? [],
           });
         }
       } catch {
@@ -66,29 +94,42 @@ function OnboardingPage() {
     })();
   }, [navigate, loadProfile]);
 
-  const toggle = (key: "industries" | "looking_for" | "background", v: string) => {
+  const toggle = (key: ArrayKey, v: string) => {
     setA((cur) => {
       const has = cur[key].includes(v);
       return { ...cur, [key]: has ? cur[key].filter((x) => x !== v) : [...cur[key], v] };
     });
   };
 
-  const total = 5;
+  const steps = [
+    { id: "role", required: !!a.role },
+    { id: "arrival", required: !!a.arrival_status },
+    { id: "residence", required: !!a.residence_status },
+    { id: "german", required: !!a.german_level },
+    { id: "stage", required: !!a.stage },
+    { id: "focus", required: a.current_focus.length > 0 },
+    { id: "industries", required: a.industries.length > 0 },
+    { id: "interests", required: a.interests.length > 0 },
+    { id: "looking", required: a.looking_for.length > 0 },
+    { id: "background", required: true }, // optional
+  ];
+  const total = steps.length;
   const next = () => setStep((s) => Math.min(s + 1, total - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
-
-  const canAdvance =
-    (step === 0 && a.role) ||
-    (step === 1 && a.stage) ||
-    (step === 2 && a.industries.length > 0) ||
-    (step === 3 && a.looking_for.length > 0) ||
-    step === 4;
+  const canAdvance = steps[step].required;
 
   const submit = async () => {
     setErr(null);
     setBusy(true);
     try {
-      await save({ data: a });
+      await save({
+        data: {
+          ...a,
+          arrival_status: a.arrival_status || null,
+          residence_status: a.residence_status || null,
+          german_level: a.german_level || null,
+        },
+      });
       navigate({ to: "/", replace: true });
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -98,6 +139,8 @@ function OnboardingPage() {
   };
 
   if (!authChecked) return <div className="p-10 text-center text-sm text-muted-foreground">Loading…</div>;
+
+  const id = steps[step].id;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -114,27 +157,43 @@ function OnboardingPage() {
       </div>
 
       <div className="rounded-2xl bg-surface border-2 border-outline shadow-brutal p-6 md:p-8">
-        {step === 0 && (
+        {id === "role" && (
           <Step title="What best describes you?" subtitle="Pick the role that fits you today.">
-            <ChipGrid
-              options={[...ROLES]}
-              selected={a.role ? [a.role] : []}
-              onClick={(v) => setA((c) => ({ ...c, role: v }))}
-            />
+            <ChipGrid options={[...ROLES]} selected={a.role ? [a.role] : []} onClick={(v) => setA((c) => ({ ...c, role: v }))} />
           </Step>
         )}
 
-        {step === 1 && (
-          <Step title="What stage are you at?" subtitle="Where are you in your journey right now?">
-            <ChipGrid
-              options={[...STAGES]}
-              selected={a.stage ? [a.stage] : []}
-              onClick={(v) => setA((c) => ({ ...c, stage: v }))}
-            />
+        {id === "arrival" && (
+          <Step title="Are you already in Berlin?" subtitle="So we can show you the right next step.">
+            <ChipGrid options={[...ARRIVAL_STATUS]} selected={a.arrival_status ? [a.arrival_status] : []} onClick={(v) => setA((c) => ({ ...c, arrival_status: v }))} />
           </Step>
         )}
 
-        {step === 2 && (
+        {id === "residence" && (
+          <Step title="What's your residence status?" subtitle="EU citizen, or visa / permit needed?">
+            <ChipGrid options={[...RESIDENCE_STATUS]} selected={a.residence_status ? [a.residence_status] : []} onClick={(v) => setA((c) => ({ ...c, residence_status: v }))} />
+          </Step>
+        )}
+
+        {id === "german" && (
+          <Step title="How's your German?" subtitle="We'll filter events and programs accordingly.">
+            <ChipGrid options={[...GERMAN_LEVEL]} selected={a.german_level ? [a.german_level] : []} onClick={(v) => setA((c) => ({ ...c, german_level: v }))} />
+          </Step>
+        )}
+
+        {id === "stage" && (
+          <Step title="What stage are you at?" subtitle="Where are you in your startup journey?">
+            <ChipGrid options={[...STAGES]} selected={a.stage ? [a.stage] : []} onClick={(v) => setA((c) => ({ ...c, stage: v }))} />
+          </Step>
+        )}
+
+        {id === "focus" && (
+          <Step title="What do you need to tackle now?" subtitle="Select everything that's on your plate.">
+            <ChipGrid options={[...CURRENT_FOCUS]} selected={a.current_focus} onClick={(v) => toggle("current_focus", v)} />
+          </Step>
+        )}
+
+        {id === "industries" && (
           <Step title="Which industries interest you?" subtitle="Select all that apply.">
             <div className="space-y-5">
               {INDUSTRY_GROUPS.map((g) => (
@@ -147,13 +206,19 @@ function OnboardingPage() {
           </Step>
         )}
 
-        {step === 3 && (
+        {id === "interests" && (
+          <Step title="What kinds of events & opportunities?" subtitle="Pick the formats and themes you want to see.">
+            <ChipGrid options={[...INTERESTS]} selected={a.interests} onClick={(v) => toggle("interests", v)} />
+          </Step>
+        )}
+
+        {id === "looking" && (
           <Step title="What are you looking for right now?" subtitle="Pick everything that matters.">
             <ChipGrid options={[...LOOKING_FOR]} selected={a.looking_for} onClick={(v) => toggle("looking_for", v)} />
           </Step>
         )}
 
-        {step === 4 && (
+        {id === "background" && (
           <Step title="What's your background?" subtitle="Optional — helps us match you with collaborators.">
             <ChipGrid options={[...BACKGROUNDS]} selected={a.background} onClick={(v) => toggle("background", v)} />
           </Step>
