@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState, useEffect, lazy, Suspense } from "react";
 import { getLocations } from "@/lib/atlas.functions";
-import { CATEGORIES, CATEGORY_LABEL, type LocationCategory } from "@/lib/categories";
+import { CATEGORIES, CATEGORY_LABEL, TOPIC_FILTERS, type LocationCategory } from "@/lib/categories";
 import { FilterChip } from "@/components/atlas/FilterChip";
 
 const AtlasMap = lazy(() => import("@/components/atlas/AtlasMap").then((m) => ({ default: m.AtlasMap })));
