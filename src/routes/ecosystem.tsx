@@ -57,7 +57,7 @@ function EcosystemPage() {
     activeTopics.forEach((id) => {
       TOPIC_FILTERS.find((t) => t.id === id)?.tags.forEach((tag) => topicTags.add(tag.toLowerCase()));
     });
-    return locations.filter((l) => {
+    const list = locations.filter((l) => {
       if (active.size > 0 && !active.has(l.category as LocationCategory)) return false;
       if (topicTags.size > 0) {
         const locTags = (l.tags ?? []).map((t: string) => t.toLowerCase());
@@ -66,7 +66,9 @@ function EcosystemPage() {
       if (query && !l.name.toLowerCase().includes(query.toLowerCase()) && !(l.district ?? "").toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
+    return [...list].sort((a: any, b: any) => (b.review_count ?? 0) - (a.review_count ?? 0));
   }, [locations, active, activeTopics, query]);
+
 
   const toggle = (id: LocationCategory) => {
     const next = new Set(active);
