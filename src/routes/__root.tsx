@@ -21,7 +21,7 @@ function NotFoundComponent() {
         <h1 className="text-7xl font-bold text-primary">404</h1>
         <h2 className="mt-4 text-xl font-semibold">Off the map</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          That corner of Berlin isn't in the Atlas yet.
+          That corner of Berlin isn't on the map yet.
         </p>
         <Link
           to="/"
@@ -65,9 +65,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Berlin Founder Atlas — community map of Berlin's startup ecosystem" },
+      { title: "Kiez Founders Berlin — community map of Berlin's startup ecosystem" },
       { name: "description", content: "Find coworking, accelerators, VCs, events and opportunities across Berlin's startup ecosystem." },
-      { property: "og:title", content: "Berlin Founder Atlas" },
+      { property: "og:title", content: "Kiez Founders Berlin" },
       { property: "og:description", content: "Community-powered map and discovery platform for Berlin founders." },
       { property: "og:type", content: "website" },
     ],

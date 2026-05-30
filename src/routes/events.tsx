@@ -16,7 +16,7 @@ const eventsQuery = queryOptions({ queryKey: ["events"], queryFn: () => getEvent
 export const Route = createFileRoute("/events")({
   head: () => ({
     meta: [
-      { title: "Events — Berlin Founder Atlas" },
+      { title: "Events — Kiez Founders Berlin" },
       { name: "description", content: "Upcoming startup events, meetups and pitch nights in Berlin." },
       { property: "og:title", content: "Berlin startup events" },
       { property: "og:description", content: "Curated events for Berlin founders." },

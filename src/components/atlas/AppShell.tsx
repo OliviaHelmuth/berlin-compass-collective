@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="size-8 grid place-items-center rounded-lg bg-primary text-primary-foreground shadow-brutal-sm">
               <span className="material-symbols-rounded" style={{ fontSize: 18 }}>map</span>
             </span>
-            <span>Atlas</span>
+            <span>Kiez Founders</span>
             <span className="hidden sm:inline text-[10px] font-sans font-medium text-muted-foreground tracking-widest ml-1">BERLIN</span>
           </Link>
 

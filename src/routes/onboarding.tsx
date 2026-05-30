@@ -14,7 +14,7 @@ import {
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your founder profile — Berlin Founder Atlas" },
+      { title: "Set up your founder profile — Kiez Founders Berlin" },
       { name: "description", content: "Tell us who you are so we can match you with the right people, places and opportunities in Berlin." },
     ],
   }),
