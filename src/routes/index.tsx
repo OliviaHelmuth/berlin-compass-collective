@@ -1,11 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState, lazy, Suspense } from "react";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useMemo, useState, lazy, Suspense } from "react";
 import { getLocations } from "@/lib/atlas.functions";
-import { getPersonalizedFeed } from "@/lib/personalize.functions";
 import { CATEGORIES, CATEGORY_LABEL, type LocationCategory } from "@/lib/categories";
 import { FilterChip } from "@/components/atlas/FilterChip";
-import { supabase } from "@/integrations/supabase/client";
 
 const AtlasMap = lazy(() => import("@/components/atlas/AtlasMap").then((m) => ({ default: m.AtlasMap })));
 
