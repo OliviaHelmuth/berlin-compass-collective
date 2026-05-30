@@ -160,7 +160,17 @@ function EventsPage() {
     setCustomRange(undefined);
   };
 
-  // Plot every known location (orgs, VCs, universities, coworking, hubs…) just like the Discover map.
+  // View toggle (matches Discover)
+  const [view, setView] = useState<"list" | "map">("list");
+
+  // IDs of locations that have at least one upcoming event in the *filtered* list.
+  const activeLocationIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const e of filtered) if (e.location_id) s.add(e.location_id);
+    return s;
+  }, [filtered]);
+
+  // Plot every known location; mute (grey) the ones without upcoming events.
   const mapLocations = useMemo(() => {
     return locations
       .filter((l) => l.lat != null && l.lng != null)
@@ -172,21 +182,45 @@ function EventsPage() {
         lng: l.lng as any,
         district: l.district ?? null,
         address: l.address ?? null,
+        muted: !activeLocationIds.has(l.id),
       }));
-  }, [locations]);
+  }, [locations, activeLocationIds]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <header>
-        <h1 className="font-display text-4xl font-bold tracking-tight">Events</h1>
-        <p className="text-muted-foreground mt-2">Upcoming events for Berlin founders.</p>
+      <header className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="font-display text-4xl font-bold tracking-tight">Events</h1>
+          <p className="text-muted-foreground mt-2">Upcoming events for Berlin founders.</p>
+        </div>
+        <div className="flex p-1 bg-surface-container rounded-lg border-2 border-outline">
+          <button
+            onClick={() => setView("list")}
+            className={cn(
+              "px-4 py-1.5 text-xs font-semibold rounded-md transition-all",
+              view === "list" ? "bg-accent text-accent-foreground shadow-brutal-sm" : "text-muted-foreground",
+            )}
+          >
+            List
+          </button>
+          <button
+            onClick={() => setView("map")}
+            className={cn(
+              "px-4 py-1.5 text-xs font-semibold rounded-md transition-all",
+              view === "map" ? "bg-accent text-accent-foreground shadow-brutal-sm" : "text-muted-foreground",
+            )}
+          >
+            Map
+          </button>
+        </div>
       </header>
 
-      {mapLocations.length > 0 && (
-        <div className="h-[320px] rounded-2xl overflow-hidden border-2 border-outline shadow-brutal-sm">
+      {view === "map" && mapLocations.length > 0 && (
+        <div className="h-[calc(100vh-260px)] min-h-[420px] rounded-2xl overflow-hidden border-2 border-outline shadow-brutal-sm">
           <AtlasMap locations={mapLocations} />
         </div>
       )}
+
 
 
       {/* Filters */}
@@ -290,52 +324,55 @@ function EventsPage() {
         </div>
       </div>
 
-      <div className="space-y-3">
-        {events.length === 0 && (
-          <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30">
-            <p className="text-sm text-muted-foreground">No events yet — check back soon.</p>
-          </div>
-        )}
-        {events.length > 0 && filtered.length === 0 && (
-          <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30 space-y-3">
-            <p className="text-sm text-muted-foreground">No events match your filters.</p>
-            <Button variant="outline" size="sm" onClick={clearAll}>Clear filters</Button>
-          </div>
-        )}
-        {filtered.map((e) => {
-          const d = new Date(e.starts_at);
-          return (
-            <a
-              key={e.id}
-              href={e.url ?? "#"}
-              target="_blank"
-              rel="noreferrer"
-              className="block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all"
-            >
-              <div className="flex gap-4 items-start">
-                <div className="size-14 shrink-0 rounded-lg bg-primary-container text-on-primary-container border-2 border-outline grid place-items-center font-display">
-                  <span className="text-[10px] font-bold uppercase">{d.toLocaleString("en", { month: "short" })}</span>
-                  <span className="text-lg font-bold leading-none -mt-0.5">{d.getDate()}</span>
+      {view === "list" && (
+        <div className="space-y-3">
+          {events.length === 0 && (
+            <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30">
+              <p className="text-sm text-muted-foreground">No events yet — check back soon.</p>
+            </div>
+          )}
+          {events.length > 0 && filtered.length === 0 && (
+            <div className="p-8 text-center rounded-2xl border-2 border-dashed border-outline/30 space-y-3">
+              <p className="text-sm text-muted-foreground">No events match your filters.</p>
+              <Button variant="outline" size="sm" onClick={clearAll}>Clear filters</Button>
+            </div>
+          )}
+          {filtered.map((e) => {
+            const d = new Date(e.starts_at);
+            return (
+              <a
+                key={e.id}
+                href={e.url ?? "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all"
+              >
+                <div className="flex gap-4 items-start">
+                  <div className="size-14 shrink-0 rounded-lg bg-primary-container text-on-primary-container border-2 border-outline grid place-items-center font-display">
+                    <span className="text-[10px] font-bold uppercase">{d.toLocaleString("en", { month: "short" })}</span>
+                    <span className="text-lg font-bold leading-none -mt-0.5">{d.getDate()}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-semibold">{e.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {e.venue ?? "Berlin"}{e.district ? ` · ${e.district}` : ""} · {d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    {e.description && <p className="text-sm mt-2 line-clamp-2">{e.description}</p>}
+                    {Array.isArray(e.tags) && e.tags.length > 0 && (
+                      <div className="flex gap-1.5 mt-2 flex-wrap">
+                        {e.tags.slice(0, 5).map((t) => (
+                          <span key={t} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-container border border-outline/30">{t}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-semibold">{e.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {e.venue ?? "Berlin"}{e.district ? ` · ${e.district}` : ""} · {d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                  {e.description && <p className="text-sm mt-2 line-clamp-2">{e.description}</p>}
-                  {Array.isArray(e.tags) && e.tags.length > 0 && (
-                    <div className="flex gap-1.5 mt-2 flex-wrap">
-                      {e.tags.slice(0, 5).map((t) => (
-                        <span key={t} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-surface-container border border-outline/30">{t}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </a>
-          );
-        })}
-      </div>
+              </a>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
+

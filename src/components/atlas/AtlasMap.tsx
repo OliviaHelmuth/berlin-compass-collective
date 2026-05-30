@@ -11,7 +11,9 @@ export type AtlasLocation = {
   lng: number | string;
   district: string | null;
   address: string | null;
+  muted?: boolean;
 };
+
 
 const BERLIN_CENTER = { lat: 52.520008, lng: 13.404954 };
 const BROWSER_KEY = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY as string | undefined;
@@ -78,7 +80,17 @@ function isDarkMode() {
   return document.documentElement.classList.contains("dark");
 }
 
-function markerIcon(active: boolean): google.maps.Symbol {
+function markerIcon(active: boolean, muted?: boolean): google.maps.Symbol {
+  if (muted) {
+    return {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 6,
+      fillColor: "#9ca3af",
+      fillOpacity: 0.7,
+      strokeColor: "#ffffff",
+      strokeWeight: 1.5,
+    };
+  }
   return {
     path: google.maps.SymbolPath.CIRCLE,
     scale: active ? 13 : 9,
@@ -88,6 +100,7 @@ function markerIcon(active: boolean): google.maps.Symbol {
     strokeWeight: active ? 3 : 2,
   };
 }
+
 
 export function AtlasMap({
   locations,
@@ -167,7 +180,7 @@ export function AtlasMap({
           position: pos,
           map,
           title: loc.name,
-          icon: markerIcon(selectedId === loc.id),
+          icon: markerIcon(selectedId === loc.id, loc.muted),
         });
         marker.addListener("click", () => {
           onSelect?.(loc.id);
@@ -185,7 +198,7 @@ export function AtlasMap({
         existing.set(loc.id, marker);
       } else {
         marker.setPosition(pos);
-        marker.setIcon(markerIcon(selectedId === loc.id));
+        marker.setIcon(markerIcon(selectedId === loc.id, loc.muted));
       }
     });
 
@@ -202,9 +215,11 @@ export function AtlasMap({
   useEffect(() => {
     if (!ready) return;
     markersRef.current.forEach((m, id) => {
-      m.setIcon(markerIcon(selectedId === id));
+      const loc = locations.find((l) => l.id === id);
+      m.setIcon(markerIcon(selectedId === id, loc?.muted));
     });
-  }, [selectedId, ready]);
+  }, [selectedId, ready, locations]);
+
 
   if (error) {
     return (
