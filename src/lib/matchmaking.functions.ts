@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { generateText, Output } from "ai";
+import { generateObject } from "ai";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { createLovableAi } from "@/lib/ai-gateway.server";
 
