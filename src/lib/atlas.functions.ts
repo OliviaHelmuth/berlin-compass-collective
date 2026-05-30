@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { ensureWelcomeBerlinEvents } from "@/lib/welcome-events.server";
 
 export const getLocations = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
@@ -43,6 +44,8 @@ export const getLocation = createServerFn({ method: "GET" })
   });
 
 export const getEvents = createServerFn({ method: "GET" }).handler(async () => {
+  await ensureWelcomeBerlinEvents();
+
   const { data, error } = await supabaseAdmin
     .from("events")
     .select("*")
