@@ -40,6 +40,7 @@ function EcosystemPage() {
   const search = Route.useSearch();
 
   const [active, setActive] = useState<Set<LocationCategory>>(() => new Set(search.cat ? [search.cat] : []));
+  const [activeTopics, setActiveTopics] = useState<Set<string>>(() => new Set());
   const [view, setView] = useState<"feed" | "map">(search.cat ? "map" : "feed");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -52,17 +53,31 @@ function EcosystemPage() {
   }, [search.cat]);
 
   const filtered = useMemo(() => {
+    const topicTags = new Set<string>();
+    activeTopics.forEach((id) => {
+      TOPIC_FILTERS.find((t) => t.id === id)?.tags.forEach((tag) => topicTags.add(tag.toLowerCase()));
+    });
     return locations.filter((l) => {
       if (active.size > 0 && !active.has(l.category as LocationCategory)) return false;
+      if (topicTags.size > 0) {
+        const locTags = (l.tags ?? []).map((t: string) => t.toLowerCase());
+        if (!locTags.some((t) => topicTags.has(t))) return false;
+      }
       if (query && !l.name.toLowerCase().includes(query.toLowerCase()) && !(l.district ?? "").toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [locations, active, query]);
+  }, [locations, active, activeTopics, query]);
 
   const toggle = (id: LocationCategory) => {
     const next = new Set(active);
     next.has(id) ? next.delete(id) : next.add(id);
     setActive(next);
+  };
+
+  const toggleTopic = (id: string) => {
+    const next = new Set(activeTopics);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setActiveTopics(next);
   };
 
   return (
