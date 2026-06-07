@@ -34,6 +34,22 @@ function OppsPage() {
   const [tab, setTab] = useState<Tab>("programs");
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [focusId, setFocusId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    const oppMatch = hash.match(/^#opp-(.+)$/);
+    if (!oppMatch) return;
+    const id = oppMatch[1];
+    setFocusId(id);
+    // Switch to the right tab based on which list contains the id
+    if (opps.some((o) => o.id === id)) setTab("opps");
+    else if (programs.some((p) => p.id === id)) setTab("programs");
+    requestAnimationFrame(() => {
+      document.getElementById(`opp-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [opps, programs]);
 
   // Build tag universe from the active tab
   const topTags = useMemo(() => {
