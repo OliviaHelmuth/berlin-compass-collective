@@ -173,9 +173,13 @@ function OppsPage() {
           {filteredPrograms.map((p) => (
             <Link
               key={p.id}
+              id={`opp-${p.id}`}
               to="/location/$id"
               params={{ id: p.id }}
-              className="block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all"
+              className={cn(
+                "block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all",
+                focusId === p.id && "ring-4 ring-primary/60 shadow-brutal",
+              )}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="material-symbols-rounded" style={{ fontSize: 18 }}>
