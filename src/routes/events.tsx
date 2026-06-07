@@ -339,13 +339,18 @@ function EventsPage() {
           )}
           {filtered.map((e) => {
             const d = new Date(e.starts_at);
+            const focused = focusId === e.id;
             return (
               <a
                 key={e.id}
+                id={`event-${e.id}`}
                 href={e.url ?? "#"}
                 target="_blank"
                 rel="noreferrer"
-                className="block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all"
+                className={cn(
+                  "block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all",
+                  focused && "ring-4 ring-primary/60 shadow-brutal",
+                )}
               >
                 <div className="flex gap-4 items-start">
                   <div className="size-14 shrink-0 rounded-lg bg-primary-container text-on-primary-container border-2 border-outline grid place-items-center font-display">
