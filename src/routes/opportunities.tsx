@@ -212,9 +212,12 @@ function OppsPage() {
           {filteredOpps.map((o, i) => (
             <div
               key={o.id}
-              className={`p-5 rounded-2xl border-2 border-outline ${
-                i === 0 ? "bg-primary text-primary-foreground shadow-lime" : "bg-surface-container shadow-brutal-sm"
-              }`}
+              id={`opp-${o.id}`}
+              className={cn(
+                "p-5 rounded-2xl border-2 border-outline",
+                i === 0 ? "bg-primary text-primary-foreground shadow-lime" : "bg-surface-container shadow-brutal-sm",
+                focusId === o.id && "ring-4 ring-primary/60 shadow-brutal",
+              )}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="material-symbols-rounded" style={{ fontSize: 18 }}>
