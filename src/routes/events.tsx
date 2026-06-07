@@ -78,6 +78,17 @@ function EventsPage() {
   const qc = useQueryClient();
   const triggered = useRef(false);
 
+  const [focusId, setFocusId] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const id = window.location.hash.replace(/^#event-/, "");
+    if (!id || id === window.location.hash) return;
+    setFocusId(id);
+    requestAnimationFrame(() => {
+      document.getElementById(`event-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, []);
+
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [preset, setPreset] = useState<DatePreset>("all");
