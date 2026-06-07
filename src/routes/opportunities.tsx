@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { getOpportunities } from "@/lib/atlas.functions";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,22 @@ function OppsPage() {
   const [tab, setTab] = useState<Tab>("programs");
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [focusId, setFocusId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    const oppMatch = hash.match(/^#opp-(.+)$/);
+    if (!oppMatch) return;
+    const id = oppMatch[1];
+    setFocusId(id);
+    // Switch to the right tab based on which list contains the id
+    if (opps.some((o) => o.id === id)) setTab("opps");
+    else if (programs.some((p) => p.id === id)) setTab("programs");
+    requestAnimationFrame(() => {
+      document.getElementById(`opp-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }, [opps, programs]);
 
   // Build tag universe from the active tab
   const topTags = useMemo(() => {
@@ -157,9 +173,13 @@ function OppsPage() {
           {filteredPrograms.map((p) => (
             <Link
               key={p.id}
+              id={`opp-${p.id}`}
               to="/location/$id"
               params={{ id: p.id }}
-              className="block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all"
+              className={cn(
+                "block p-5 rounded-xl border-2 border-outline bg-surface hover:bg-surface-container hover:shadow-brutal-sm transition-all",
+                focusId === p.id && "ring-4 ring-primary/60 shadow-brutal",
+              )}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="material-symbols-rounded" style={{ fontSize: 18 }}>
@@ -192,9 +212,12 @@ function OppsPage() {
           {filteredOpps.map((o, i) => (
             <div
               key={o.id}
-              className={`p-5 rounded-2xl border-2 border-outline ${
-                i === 0 ? "bg-primary text-primary-foreground shadow-lime" : "bg-surface-container shadow-brutal-sm"
-              }`}
+              id={`opp-${o.id}`}
+              className={cn(
+                "p-5 rounded-2xl border-2 border-outline",
+                i === 0 ? "bg-primary text-primary-foreground shadow-lime" : "bg-surface-container shadow-brutal-sm",
+                focusId === o.id && "ring-4 ring-primary/60 shadow-brutal",
+              )}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="material-symbols-rounded" style={{ fontSize: 18 }}>

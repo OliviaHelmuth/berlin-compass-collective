@@ -1,52 +1,62 @@
-## 1. Fix AI Match (already real AI — just broken)
+## Goal
 
-It IS using real Lovable AI + real Supabase data already. Two issues:
+Make `/match` actually call our AI against our own Supabase data (locations, events, opportunities) and route every result card to its real detail page.
 
-- **Schema error** (`AI_NoObjectGeneratedError`): `gemini-2.5-flash` sometimes returns prose instead of strict JSON for `generateObject`. Switch model to `google/gemini-3-flash-preview` (current default), loosen the schema (drop the strict `enum` on `kind`, accept then normalize), and add a try/catch fallback that retries with `gemini-2.5-pro` if the first parse fails.
-- **"Don't see AI Match in preview"**: the route exists and is in the nav. Most likely the preview was cached. Add a clear hero CTA + ensure the nav highlights it with an "NEW" pill so it's obvious. Also surface it on `/ecosystem` (already there) and from the Hub.
+## What already exists (good news)
 
-Also: cap catalog payload to ~40 locations / 20 events / 20 opps and pre-trim blurbs to 140 chars so the model has cleaner input → fewer schema failures.
+- `src/lib/matchmaking.functions.ts` already does the real work: pulls up to 60 locations, 20 events, 20 opportunities from Supabase, sends them to Lovable AI (`google/gemini-3-flash-preview`, fallback `google/gemini-2.5-pro`), and returns validated picks whose ids exist in our DB.
+- `LOVABLE_API_KEY` is already provisioned.
+- Lovable AI Gateway is the right choice — no extra setup, billed from workspace credits, supports the models we need. No reason to wire OpenAI/Anthropic directly.
 
-## 2. Landing page: make it feel like THE answer
+## What's broken
 
-Rewrite `src/routes/index.tsx` into an exciting, benefit-led story. New sections in order:
+`src/routes/match.tsx` is the problem. Right now it:
+1. Ignores the real `matchmake` server function.
+2. Returns 4 hardcoded preset answers with fake ids like `"greentech-hub"`.
+3. For any non-preset query, shows a fake "out of credits" message.
+4. Result cards link to `/location/{fakeId}` which 404s.
 
-1. **Hero** — Big promise + social proof bar
-   - Headline: "Berlin's startup scene, finally in one place."
-   - Sub: "153 places. 56 events. 25 opportunities. One AI concierge that maps you to the right ones in 10 seconds."
-   - Primary CTA: "Match me with my Berlin" → `/match` (glowing, animated sparkle)
-   - Secondary: "Explore the ecosystem map" → `/ecosystem`
-   - Trust strip: live counters (locations, events, opportunities, founders) pulled from the loader data
-2. **"Stuck on…?" problem→solution grid** — 6 founder pains, each links to the exact filtered destination
-   - "Need a desk in Kreuzberg" → `/ecosystem?cat=coworking`
-   - "Anmeldung / visa help" → `/ecosystem?topic=legal`
-   - "Looking for an accelerator" → `/ecosystem?cat=accelerator`
-   - "German classes" → `/ecosystem?topic=german`
-   - "Want intros to angels" → `/opportunities`
-   - "Find my people" → `/match`
-3. **AI Match teaser** — full-bleed card with example query + animated typing, "Try it free, no login"
-4. **Happening now** — keep current 3-column (events / opportunities / new places)
-5. **Community proof** — pull top 3–4 highest-rated locations from loader, show as testimonial-style cards with star rating + review count (already in data)
-6. **How it works** — keep but tighten copy
-7. **Final CTA band** — "Your first week in Berlin's startup scene starts here"
+So the AI isn't actually being called, and the cards don't open anything real.
 
-Visual: keep current brutalist tokens (no new colors), add subtle Motion fade/slide-in on scroll for hero + grid, add an animated sparkle on the AI CTA.
+## Plan
 
-## 3. Nav polish
+### 1. Use the real server function in `match.tsx`
 
-Add a small "NEW" badge on the `AI Match` nav item so users notice it.
+- Remove the `PRESET_RESULTS` map, the fake 1.5s delay, and the fake "out of credits" error.
+- Call `matchmake({ data: { query } })` via `useServerFn` on submit.
+- Loading state while the request runs; show real summary + picks on success.
+- On error, show the actual error message (rate limit, credit exhaustion, validation) instead of a canned one.
 
-## Technical notes
+### 2. Make result cards open the real thing
 
-- Files touched: `src/lib/matchmaking.functions.ts`, `src/routes/index.tsx`, `src/components/atlas/AppShell.tsx`
-- No DB changes, no new packages (Motion already isn't required — use Tailwind keyframes for the sparkle to stay zero-dep)
-- Reuse existing loader (`eventsQuery`, `oppsQuery`, `locationsQuery`) — already returns ratings via `getLocations`
-- Keep all semantic design tokens; no hardcoded colors
+`matchmake` already returns real DB ids. Update `PickCard`:
+- `location` → `/location/$id` (route exists)
+- `event` → `/events` with the event id passed in search params; on the events page, auto-scroll/highlight the matching event (small addition: read `?focus=<id>` and scroll to it).
+- `opportunity` → `/opportunities` with `?focus=<id>`, same pattern.
+
+(Locations have a dedicated detail route, events/opportunities don't — focusing on the list item is the minimal correct behavior without building two new detail pages.)
+
+### 3. Keep the example chips
+
+Keep the 4 example prompts as quick-fill buttons, but they now run through the real AI like any other query.
+
+### 4. Light UX polish
+
+- Disable submit while the call is in-flight, show "Matching across 60 places, 20 events, 20 opportunities…".
+- Empty-state message when AI returns 0 valid picks (rare, since we validate ids server-side).
+
+## Files touched
+
+- `src/routes/match.tsx` — rewrite the submit handler and `PickCard` href logic.
+- `src/routes/events.tsx` — read `?focus=<id>`, scroll the matching card into view, add a highlight ring (small, additive).
+- `src/routes/opportunities.tsx` — same `?focus=<id>` treatment.
+
+No DB changes. No new packages. No changes to `matchmaking.functions.ts` (it's already correct).
 
 ## Out of scope
 
-- Navigator AI chat (#3 from earlier plan)
-- Any new tables or migrations
-- Auth flow changes
+- Building dedicated `/event/$id` and `/opportunity/$id` detail pages (bigger task — happy to do it next if you want).
+- Streaming AI responses (current one-shot is fine for this UX).
+- Caching / rate-limit UI beyond surfacing the error.
 
 Ready to build on approval.
