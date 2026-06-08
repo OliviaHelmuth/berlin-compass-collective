@@ -1,62 +1,33 @@
-## Goal
+## What broke
 
-Make `/match` actually call our AI against our own Supabase data (locations, events, opportunities) and route every result card to its real detail page.
+The match endpoint is real (calls Lovable AI + your Supabase catalog), but every call now throws:
 
-## What already exists (good news)
+`AI_NoObjectGeneratedError: No object generated: response did not match schema.`
 
-- `src/lib/matchmaking.functions.ts` already does the real work: pulls up to 60 locations, 20 events, 20 opportunities from Supabase, sends them to Lovable AI (`google/gemini-3-flash-preview`, fallback `google/gemini-2.5-pro`), and returns validated picks whose ids exist in our DB.
-- `LOVABLE_API_KEY` is already provisioned.
-- Lovable AI Gateway is the right choice — no extra setup, billed from workspace credits, supports the models we need. No reason to wire OpenAI/Anthropic directly.
+Root cause: `matchmaking.functions.ts` uses the AI SDK's `generateObject({ schema })` against `google/gemini-3-flash-preview`. That preview model's structured-output mode is rejecting/returning a payload that doesn't satisfy our Zod schema, and the "fallback to gemini-2.5-pro" path uses the same strict `generateObject` path so it fails the same way. Result: 100% failure on both the templates and free-text input — exactly what you're seeing.
 
-## What's broken
+The UI also swallows the real message behind a generic banner, so it looks like "AI isn't hooked up" when in fact it is — the model just isn't returning valid JSON for that schema.
 
-`src/routes/match.tsx` is the problem. Right now it:
-1. Ignores the real `matchmake` server function.
-2. Returns 4 hardcoded preset answers with fake ids like `"greentech-hub"`.
-3. For any non-preset query, shows a fake "out of credits" message.
-4. Result cards link to `/location/{fakeId}` which 404s.
+## Fix plan
 
-So the AI isn't actually being called, and the cards don't open anything real.
+1. **`src/lib/matchmaking.functions.ts` — switch to a robust JSON path**
+   - Replace `generateObject` with `generateText` + a strict "return JSON only, matching this shape" system prompt, then `JSON.parse` + `ResultSchema.parse` server-side. This avoids the gateway's constrained-decoding state machine that's currently rejecting our schema on the preview model.
+   - Keep the same `ResultSchema` (summary + picks[kind,id,title,why]) and the same id-validation filter against the catalog.
+   - Use `google/gemini-2.5-flash` as primary (stable, supports our context size) and `google/gemini-2.5-pro` as fallback.
+   - Wrap parsing in try/catch; if the model returns prose around the JSON, extract the first `{...}` block before parsing.
+   - On hard failure, throw a clean `Error("AI returned an unreadable response. Try rephrasing.")` instead of leaking the SDK stack.
+   - Explicitly re-throw `429` / `402` with clear messages so the UI can show the right banner.
 
-## Plan
+2. **`src/routes/match.tsx` — real error handling**
+   - Keep the existing 429/402 branches.
+   - Add a dev-friendly details line under the banner (collapsed `<details>`) showing the raw message so future failures are diagnosable without digging through network tab.
+   - Show an empty-state hint when the AI returns 0 valid picks (ids didn't match catalog) — "Couldn't find clean matches, try adding your stage / focus / what you need next."
 
-### 1. Use the real server function in `match.tsx`
-
-- Remove the `PRESET_RESULTS` map, the fake 1.5s delay, and the fake "out of credits" error.
-- Call `matchmake({ data: { query } })` via `useServerFn` on submit.
-- Loading state while the request runs; show real summary + picks on success.
-- On error, show the actual error message (rate limit, credit exhaustion, validation) instead of a canned one.
-
-### 2. Make result cards open the real thing
-
-`matchmake` already returns real DB ids. Update `PickCard`:
-- `location` → `/location/$id` (route exists)
-- `event` → `/events` with the event id passed in search params; on the events page, auto-scroll/highlight the matching event (small addition: read `?focus=<id>` and scroll to it).
-- `opportunity` → `/opportunities` with `?focus=<id>`, same pattern.
-
-(Locations have a dedicated detail route, events/opportunities don't — focusing on the list item is the minimal correct behavior without building two new detail pages.)
-
-### 3. Keep the example chips
-
-Keep the 4 example prompts as quick-fill buttons, but they now run through the real AI like any other query.
-
-### 4. Light UX polish
-
-- Disable submit while the call is in-flight, show "Matching across 60 places, 20 events, 20 opportunities…".
-- Empty-state message when AI returns 0 valid picks (rare, since we validate ids server-side).
-
-## Files touched
-
-- `src/routes/match.tsx` — rewrite the submit handler and `PickCard` href logic.
-- `src/routes/events.tsx` — read `?focus=<id>`, scroll the matching card into view, add a highlight ring (small, additive).
-- `src/routes/opportunities.tsx` — same `?focus=<id>` treatment.
-
-No DB changes. No new packages. No changes to `matchmaking.functions.ts` (it's already correct).
+3. **No DB changes, no new packages, no changes to routes other than `match.tsx`.**
 
 ## Out of scope
 
-- Building dedicated `/event/$id` and `/opportunity/$id` detail pages (bigger task — happy to do it next if you want).
-- Streaming AI responses (current one-shot is fine for this UX).
-- Caching / rate-limit UI beyond surfacing the error.
+- Streaming responses, caching, per-user rate limits, dedicated detail pages — same as before.
+- Touching `events.tsx` / `opportunities.tsx` hash-scroll behavior (already working).
 
-Ready to build on approval.
+Approve and I'll implement.
