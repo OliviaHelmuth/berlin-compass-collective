@@ -1,33 +1,41 @@
-## What broke
+## Loading state + friendly error handling for AI Match
 
-The match endpoint is real (calls Lovable AI + your Supabase catalog), but every call now throws:
+`src/routes/match.tsx` only. No server or schema changes.
 
-`AI_NoObjectGeneratedError: No object generated: response did not match schema.`
+### 1. Loading screen (while `busy` is true)
 
-Root cause: `matchmaking.functions.ts` uses the AI SDK's `generateObject({ schema })` against `google/gemini-3-flash-preview`. That preview model's structured-output mode is rejecting/returning a payload that doesn't satisfy our Zod schema, and the "fallback to gemini-2.5-pro" path uses the same strict `generateObject` path so it fails the same way. Result: 100% failure on both the templates and free-text input — exactly what you're seeing.
+Render a loading card under the form with:
 
-The UI also swallows the real message behind a generic banner, so it looks like "AI isn't hooked up" when in fact it is — the model just isn't returning valid JSON for that schema.
+- Pulsing dot / spinner using existing tokens (border-outline, bg-surface-container, shadow-brutal).
+- Headline: "Scanning the Berlin ecosystem…"
+- Rotating status lines, cycling every ~1.6s so it visibly progresses:
+  1. "Reading 60 places, 20 events, 20 opportunities…"
+  2. "Asking the AI concierge…"
+  3. "Picking the best 3–5 matches for you…"
+  4. "Writing why each one fits…"
+- Hint: "This usually takes 5–15 seconds."
+- 3 skeleton pick cards (same shape as `PickCard`) pulsing below, so the layout doesn't jump on arrival.
 
-## Fix plan
+Implementation: `useState` step index + `useEffect` interval started when `busy` flips true, cleared on cleanup. Keep button-disabled + label change.
 
-1. **`src/lib/matchmaking.functions.ts` — switch to a robust JSON path**
-   - Replace `generateObject` with `generateText` + a strict "return JSON only, matching this shape" system prompt, then `JSON.parse` + `ResultSchema.parse` server-side. This avoids the gateway's constrained-decoding state machine that's currently rejecting our schema on the preview model.
-   - Keep the same `ResultSchema` (summary + picks[kind,id,title,why]) and the same id-validation filter against the catalog.
-   - Use `google/gemini-2.5-flash` as primary (stable, supports our context size) and `google/gemini-2.5-pro` as fallback.
-   - Wrap parsing in try/catch; if the model returns prose around the JSON, extract the first `{...}` block before parsing.
-   - On hard failure, throw a clean `Error("AI returned an unreadable response. Try rephrasing.")` instead of leaking the SDK stack.
-   - Explicitly re-throw `429` / `402` with clear messages so the UI can show the right banner.
+### 2. Friendly error handling
 
-2. **`src/routes/match.tsx` — real error handling**
-   - Keep the existing 429/402 branches.
-   - Add a dev-friendly details line under the banner (collapsed `<details>`) showing the raw message so future failures are diagnosable without digging through network tab.
-   - Show an empty-state hint when the AI returns 0 valid picks (ids didn't match catalog) — "Couldn't find clean matches, try adding your stage / focus / what you need next."
+Map server errors to clear, human messages instead of raw stacks:
 
-3. **No DB changes, no new packages, no changes to routes other than `match.tsx`.**
+| Server error contains | UI shows |
+| --- | --- |
+| `429` | "Too many requests right now — give it a few seconds and try again." |
+| `402` | "The AI credits for this workspace are used up. Add more in Settings → Workspace → Usage." |
+| `AI is not configured` | "AI isn't connected yet. Please contact the site admin." |
+| `unreadable response` / parse / schema | "The AI got confused by that one. Try rephrasing with your stage, focus area, or what you need next." |
+| network / fetch / `Failed to fetch` | "Couldn't reach the AI service. Check your connection and try again." |
+| anything else | "Something went wrong on our side. Please try again." |
 
-## Out of scope
+Error card design:
+- Rounded card, `border-destructive/40`, `bg-destructive/5`.
+- Icon (material `error` or `sentiment_dissatisfied`) + bold one-line headline + the mapped message.
+- "Try again" button that re-submits the last query.
+- Collapsible "Technical details" `<details>` keeps the raw message for debugging.
 
-- Streaming responses, caching, per-user rate limits, dedicated detail pages — same as before.
-- Touching `events.tsx` / `opportunities.tsx` hash-scroll behavior (already working).
-
-Approve and I'll implement.
+### Out of scope
+- Streaming partial results, progress %, cancel button, retry-with-backoff, toast notifications.

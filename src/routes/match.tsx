@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { matchmake } from "@/lib/matchmaking.functions";
@@ -26,6 +26,12 @@ type Pick = {
   why: string;
 };
 
+type FriendlyError = {
+  headline: string;
+  message: string;
+  raw: string;
+};
+
 const EXAMPLES = [
   "Solo technical founder, climate tech, looking for co-working in Kreuzberg + a community of climate folks.",
   "Just moved to Berlin from London. Need help with Anmeldung and a visa-friendly accountant.",
@@ -33,17 +39,78 @@ const EXAMPLES = [
   "Researcher coming out of TU Berlin, want to talk to deep-tech VCs and incubators.",
 ];
 
+const LOADING_STEPS = [
+  "Reading 60 places, 20 events, 20 opportunities…",
+  "Asking the AI concierge…",
+  "Picking the best 3–5 matches for you…",
+  "Writing why each one fits…",
+];
+
+function mapError(raw: string): FriendlyError {
+  const lower = raw.toLowerCase();
+  if (raw.includes("429") || lower.includes("rate limit")) {
+    return {
+      headline: "Too many requests right now",
+      message: "Give it a few seconds and try again.",
+      raw,
+    };
+  }
+  if (raw.includes("402") || lower.includes("credits")) {
+    return {
+      headline: "AI credits used up",
+      message: "The AI credits for this workspace are used up. Add more in Settings → Workspace → Usage.",
+      raw,
+    };
+  }
+  if (lower.includes("not configured")) {
+    return {
+      headline: "AI isn't connected yet",
+      message: "Please contact the site admin to enable the AI matchmaker.",
+      raw,
+    };
+  }
+  if (lower.includes("unreadable") || lower.includes("parse") || lower.includes("schema") || lower.includes("json")) {
+    return {
+      headline: "The AI got confused by that one",
+      message: "Try rephrasing with your stage, focus area, or what you need next.",
+      raw,
+    };
+  }
+  if (lower.includes("failed to fetch") || lower.includes("network") || lower.includes("networkerror")) {
+    return {
+      headline: "Couldn't reach the AI service",
+      message: "Check your connection and try again.",
+      raw,
+    };
+  }
+  return {
+    headline: "Something went wrong on our side",
+    message: "Please try again in a moment.",
+    raw,
+  };
+}
+
 function MatchPage() {
   const run = useServerFn(matchmake);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<FriendlyError | null>(null);
   const [result, setResult] = useState<{ summary: string; picks: Pick[] } | null>(null);
+  const [step, setStep] = useState(0);
+  const lastQueryRef = useRef<string>("");
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const q = query.trim();
+  useEffect(() => {
+    if (!busy) return;
+    setStep(0);
+    const id = setInterval(() => {
+      setStep((s) => (s + 1) % LOADING_STEPS.length);
+    }, 1600);
+    return () => clearInterval(id);
+  }, [busy]);
+
+  async function submit(q: string) {
     if (busy || q.length < 3) return;
+    lastQueryRef.current = q;
     setBusy(true);
     setError(null);
     setResult(null);
@@ -53,16 +120,15 @@ function MatchPage() {
       setResult(res as { summary: string; picks: Pick[] });
     } catch (err: any) {
       const msg = err?.message ?? String(err);
-      if (msg.includes("429")) {
-        setError("Rate limit reached. Give it a few seconds and try again.");
-      } else if (msg.includes("402")) {
-        setError("AI credits exhausted on this workspace. Add credits in Settings → Workspace → Usage.");
-      } else {
-        setError(msg);
-      }
+      setError(mapError(msg));
     } finally {
       setBusy(false);
     }
+  }
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    submit(query.trim());
   }
 
   return (
@@ -116,17 +182,41 @@ function MatchPage() {
         </div>
       </form>
 
-      {error && (
-        <div className="p-4 rounded-xl border-2 border-destructive/40 bg-destructive/5 text-sm text-destructive space-y-2">
-          <div>{error}</div>
-          <details className="text-[11px] opacity-70">
-            <summary className="cursor-pointer">Technical details</summary>
-            <pre className="mt-1 whitespace-pre-wrap break-all">{error}</pre>
-          </details>
+      {busy && <LoadingPanel step={step} />}
+
+      {error && !busy && (
+        <div className="p-5 rounded-2xl border-2 border-destructive/40 bg-destructive/5 shadow-brutal-sm space-y-3">
+          <div className="flex items-start gap-3">
+            <span
+              className="material-symbols-rounded text-destructive shrink-0"
+              style={{ fontSize: 28 }}
+              aria-hidden
+            >
+              sentiment_dissatisfied
+            </span>
+            <div className="space-y-1">
+              <h2 className="font-display font-bold text-base text-destructive">{error.headline}</h2>
+              <p className="text-sm text-foreground/80">{error.message}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => submit(lastQueryRef.current || query.trim())}
+              disabled={!lastQueryRef.current && query.trim().length < 3}
+              className="px-4 py-2 rounded-full bg-primary text-primary-foreground border-2 border-outline shadow-brutal-sm text-xs font-semibold disabled:opacity-50"
+            >
+              Try again
+            </button>
+            <details className="text-[11px] opacity-70">
+              <summary className="cursor-pointer">Technical details</summary>
+              <pre className="mt-1 whitespace-pre-wrap break-all max-w-full">{error.raw}</pre>
+            </details>
+          </div>
         </div>
       )}
 
-      {result && (
+      {result && !busy && (
         <section className="space-y-3">
           <div className="p-4 rounded-2xl bg-accent/30 border-2 border-outline text-sm font-medium">
             {result.summary}
@@ -142,6 +232,37 @@ function MatchPage() {
         </section>
       )}
     </div>
+  );
+}
+
+function LoadingPanel({ step }: { step: number }) {
+  return (
+    <section className="space-y-3" aria-live="polite" aria-busy="true">
+      <div className="p-5 rounded-2xl bg-surface-container border-2 border-outline shadow-brutal space-y-3">
+        <div className="flex items-center gap-3">
+          <span className="relative inline-flex h-3 w-3 shrink-0">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
+          </span>
+          <h2 className="font-display font-bold text-base">Scanning the Berlin ecosystem…</h2>
+        </div>
+        <p className="text-sm text-muted-foreground transition-opacity">{LOADING_STEPS[step]}</p>
+        <p className="text-[11px] text-muted-foreground/80">This usually takes 5–15 seconds.</p>
+      </div>
+      <div className="space-y-3">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="p-4 rounded-xl border-2 border-outline/40 bg-surface-container/60 animate-pulse"
+          >
+            <div className="h-2 w-16 rounded bg-foreground/15" />
+            <div className="h-4 w-2/3 rounded bg-foreground/15 mt-2" />
+            <div className="h-3 w-full rounded bg-foreground/10 mt-2" />
+            <div className="h-3 w-5/6 rounded bg-foreground/10 mt-1" />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
