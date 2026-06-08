@@ -117,8 +117,12 @@ function MatchPage() {
       </form>
 
       {error && (
-        <div className="p-4 rounded-xl border-2 border-destructive/40 bg-destructive/5 text-sm text-destructive">
-          {error}
+        <div className="p-4 rounded-xl border-2 border-destructive/40 bg-destructive/5 text-sm text-destructive space-y-2">
+          <div>{error}</div>
+          <details className="text-[11px] opacity-70">
+            <summary className="cursor-pointer">Technical details</summary>
+            <pre className="mt-1 whitespace-pre-wrap break-all">{error}</pre>
+          </details>
         </div>
       )}
 
