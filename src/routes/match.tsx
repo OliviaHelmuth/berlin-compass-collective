@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useTranslation } from "react-i18next";
 import { matchmake } from "@/lib/matchmaking.functions";
+import { DEMO_MATCH_KEY } from "@/lib/demo-persona";
 
 export const Route = createFileRoute("/match")({
   head: () => ({
@@ -91,6 +93,7 @@ function mapError(raw: string): FriendlyError {
 }
 
 function MatchPage() {
+  const { t } = useTranslation();
   const run = useServerFn(matchmake);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
@@ -98,6 +101,7 @@ function MatchPage() {
   const [result, setResult] = useState<{ summary: string; picks: Pick[] } | null>(null);
   const [step, setStep] = useState(0);
   const lastQueryRef = useRef<string>("");
+  const autoRanRef = useRef(false);
 
   useEffect(() => {
     if (!busy) return;
@@ -126,10 +130,32 @@ function MatchPage() {
     }
   }
 
+  // Auto-run when arriving from the /demo flow
+  useEffect(() => {
+    if (autoRanRef.current) return;
+    if (typeof window === "undefined") return;
+    const demoQuery = sessionStorage.getItem(DEMO_MATCH_KEY);
+    if (demoQuery && demoQuery.length >= 3) {
+      autoRanRef.current = true;
+      sessionStorage.removeItem(DEMO_MATCH_KEY);
+      setQuery(demoQuery);
+      void submit(demoQuery);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     submit(query.trim());
   }
+
+  const loadingSteps = [
+    t("match.steps.reading"),
+    t("match.steps.asking"),
+    t("match.steps.picking"),
+    t("match.steps.writing"),
+  ];
+
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
@@ -138,14 +164,13 @@ function MatchPage() {
           <span className="material-symbols-rounded" style={{ fontSize: 14 }}>
             auto_awesome
           </span>
-          AI Matchmaker
+          {t("match.badge")}
         </span>
         <h1 className="font-display text-3xl md:text-5xl font-bold mt-4 leading-tight tracking-tight">
-          Tell us where you're stuck.
+          {t("match.title")}
         </h1>
         <p className="mt-3 text-base text-muted-foreground">
-          Our concierge reads the whole Berlin ecosystem catalog and picks the 3–5 best places, events and
-          opportunities for you. No login needed.
+          {t("match.subtitle")}
         </p>
       </header>
 
@@ -153,7 +178,7 @@ function MatchPage() {
         <textarea
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="e.g. Solo founder, climate tech, looking for coworking in Kreuzberg + a community of climate folks…"
+          placeholder={t("match.placeholder")}
           maxLength={600}
           rows={4}
           className="w-full bg-transparent text-sm resize-none focus:outline-none"
@@ -177,12 +202,13 @@ function MatchPage() {
             disabled={busy || query.trim().length < 3}
             className="px-5 py-2.5 rounded-full bg-primary text-primary-foreground border-2 border-outline shadow-brutal-sm text-sm font-semibold disabled:opacity-50"
           >
-            {busy ? "Matching across the ecosystem…" : "Find my matches"}
+            {busy ? t("match.submitting") : t("match.submit")}
           </button>
         </div>
       </form>
 
-      {busy && <LoadingPanel step={step} />}
+      {busy && <LoadingPanel step={step} steps={loadingSteps} scanningLabel={t("match.scanning")} takesTime={t("match.takesTime")} />}
+
 
       {error && !busy && (
         <div className="p-5 rounded-2xl border-2 border-destructive/40 bg-destructive/5 shadow-brutal-sm space-y-3">
@@ -206,10 +232,10 @@ function MatchPage() {
               disabled={!lastQueryRef.current && query.trim().length < 3}
               className="px-4 py-2 rounded-full bg-primary text-primary-foreground border-2 border-outline shadow-brutal-sm text-xs font-semibold disabled:opacity-50"
             >
-              Try again
+              {t("common.tryAgain")}
             </button>
             <details className="text-[11px] opacity-70">
-              <summary className="cursor-pointer">Technical details</summary>
+              <summary className="cursor-pointer">{t("match.technical")}</summary>
               <pre className="mt-1 whitespace-pre-wrap break-all max-w-full">{error.raw}</pre>
             </details>
           </div>
@@ -227,7 +253,7 @@ function MatchPage() {
             ))}
           </div>
           {result.picks.length === 0 && (
-            <p className="text-sm text-muted-foreground">No clean matches — try adding more detail about your stage, focus area, or what you need next.</p>
+            <p className="text-sm text-muted-foreground">{t("match.noMatches")}</p>
           )}
         </section>
       )}
@@ -235,7 +261,7 @@ function MatchPage() {
   );
 }
 
-function LoadingPanel({ step }: { step: number }) {
+function LoadingPanel({ step, steps, scanningLabel, takesTime }: { step: number; steps: string[]; scanningLabel: string; takesTime: string }) {
   return (
     <section className="space-y-3" aria-live="polite" aria-busy="true">
       <div className="p-5 rounded-2xl bg-surface-container border-2 border-outline shadow-brutal space-y-3">
@@ -244,10 +270,10 @@ function LoadingPanel({ step }: { step: number }) {
             <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
             <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
           </span>
-          <h2 className="font-display font-bold text-base">Scanning the Berlin ecosystem…</h2>
+          <h2 className="font-display font-bold text-base">{scanningLabel}</h2>
         </div>
-        <p className="text-sm text-muted-foreground transition-opacity">{LOADING_STEPS[step]}</p>
-        <p className="text-[11px] text-muted-foreground/80">This usually takes 5–15 seconds.</p>
+        <p className="text-sm text-muted-foreground transition-opacity">{steps[step] ?? steps[0]}</p>
+        <p className="text-[11px] text-muted-foreground/80">{takesTime}</p>
       </div>
       <div className="space-y-3">
         {[0, 1, 2].map((i) => (
@@ -267,7 +293,8 @@ function LoadingPanel({ step }: { step: number }) {
 }
 
 function PickCard({ pick }: { pick: Pick }) {
-  const kindLabel = pick.kind === "location" ? "Place" : pick.kind === "event" ? "Event" : "Opportunity";
+  const { t } = useTranslation();
+  const kindLabel = t(`match.kinds.${pick.kind}`);
 
   const common =
     "block p-4 rounded-xl border-2 border-outline bg-surface-container hover:shadow-brutal-sm transition-all";
