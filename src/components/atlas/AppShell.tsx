@@ -1,16 +1,19 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const NAV = [
-  { to: "/", label: "Discover", icon: "explore" },
-  { to: "/ecosystem", label: "Ecosystem", icon: "map" },
-  { to: "/match", label: "AI Match", icon: "auto_awesome" },
-  { to: "/events", label: "Events", icon: "event" },
-  { to: "/opportunities", label: "Opportunities", icon: "bolt" },
-  { to: "/my-hub", label: "My Hub", icon: "hub" },
-  { to: "/messages", label: "Messages", icon: "chat" },
+  { to: "/", labelKey: "nav.discover", icon: "explore" },
+  { to: "/ecosystem", labelKey: "nav.ecosystem", icon: "map" },
+  { to: "/match", labelKey: "nav.match", icon: "auto_awesome" },
+  { to: "/events", labelKey: "nav.events", icon: "event" },
+  { to: "/opportunities", labelKey: "nav.opportunities", icon: "bolt" },
+  { to: "/my-hub", labelKey: "nav.myHub", icon: "hub" },
+  { to: "/messages", labelKey: "nav.messages", icon: "chat" },
 ];
+
 
 
 export function AppShell({ children }: { children: ReactNode }) {
