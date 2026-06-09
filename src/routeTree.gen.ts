@@ -19,6 +19,7 @@ import { Route as MatchRouteImport } from './routes/match'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as EcosystemRouteImport } from './routes/ecosystem'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocationIdRouteImport } from './routes/location.$id'
 import { Route as ApiPublicCronScrapeEventsRouteImport } from './routes/api/public/cron/scrape-events'
@@ -75,6 +76,11 @@ const EcosystemRoute = EcosystemRouteImport.update({
   path: '/ecosystem',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -106,6 +112,7 @@ const ApiPublicAdminFixStartupMapWebsitesRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
   '/ecosystem': typeof EcosystemRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
   '/ecosystem': typeof EcosystemRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
@@ -141,6 +149,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/demo': typeof DemoRoute
   '/ecosystem': typeof EcosystemRoute
   '/events': typeof EventsRoute
   '/login': typeof LoginRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/demo'
     | '/ecosystem'
     | '/events'
     | '/login'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/demo'
     | '/ecosystem'
     | '/events'
     | '/login'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/demo'
     | '/ecosystem'
     | '/events'
     | '/login'
@@ -212,6 +224,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DemoRoute: typeof DemoRoute
   EcosystemRoute: typeof EcosystemRoute
   EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
@@ -300,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcosystemRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -340,6 +360,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DemoRoute: DemoRoute,
   EcosystemRoute: EcosystemRoute,
   EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
