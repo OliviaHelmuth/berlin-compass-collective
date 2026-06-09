@@ -164,14 +164,13 @@ function MatchPage() {
           <span className="material-symbols-rounded" style={{ fontSize: 14 }}>
             auto_awesome
           </span>
-          AI Matchmaker
+          {t("match.badge")}
         </span>
         <h1 className="font-display text-3xl md:text-5xl font-bold mt-4 leading-tight tracking-tight">
-          Tell us where you're stuck.
+          {t("match.title")}
         </h1>
         <p className="mt-3 text-base text-muted-foreground">
-          Our concierge reads the whole Berlin ecosystem catalog and picks the 3–5 best places, events and
-          opportunities for you. No login needed.
+          {t("match.subtitle")}
         </p>
       </header>
 
@@ -179,7 +178,7 @@ function MatchPage() {
         <textarea
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="e.g. Solo founder, climate tech, looking for coworking in Kreuzberg + a community of climate folks…"
+          placeholder={t("match.placeholder")}
           maxLength={600}
           rows={4}
           className="w-full bg-transparent text-sm resize-none focus:outline-none"
@@ -203,12 +202,13 @@ function MatchPage() {
             disabled={busy || query.trim().length < 3}
             className="px-5 py-2.5 rounded-full bg-primary text-primary-foreground border-2 border-outline shadow-brutal-sm text-sm font-semibold disabled:opacity-50"
           >
-            {busy ? "Matching across the ecosystem…" : "Find my matches"}
+            {busy ? t("match.submitting") : t("match.submit")}
           </button>
         </div>
       </form>
 
-      {busy && <LoadingPanel step={step} />}
+      {busy && <LoadingPanel step={step} steps={loadingSteps} scanningLabel={t("match.scanning")} takesTime={t("match.takesTime")} />}
+
 
       {error && !busy && (
         <div className="p-5 rounded-2xl border-2 border-destructive/40 bg-destructive/5 shadow-brutal-sm space-y-3">
