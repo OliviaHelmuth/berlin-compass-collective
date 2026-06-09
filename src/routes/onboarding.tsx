@@ -15,6 +15,7 @@ import {
   CURRENT_FOCUS,
   INTERESTS,
 } from "@/lib/tags";
+import { DEMO_FLAG_KEY, DEMO_MATCH_KEY, FRANZISKA_PREFILL, FRANZISKA_MATCH_QUERY } from "@/lib/demo-persona";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
