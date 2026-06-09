@@ -50,7 +50,7 @@ function DemoOrchestrator() {
         if (cancelled) return;
 
         // 4. Flag the demo in sessionStorage so onboarding prefills + match auto-runs
-        sessionStorage.setItem("kf:demo", "franziska");
+        sessionStorage.setItem(DEMO_FLAG_KEY, "franziska");
 
         // 5. Go to onboarding
         setStep("onboarding");
