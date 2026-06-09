@@ -71,9 +71,13 @@ function OnboardingPage() {
         navigate({ to: "/login", search: { next: "/onboarding" } as never, replace: true });
         return;
       }
+      const isDemo = typeof window !== "undefined" && sessionStorage.getItem(DEMO_FLAG_KEY) === "franziska";
       try {
         const p = await loadProfile();
-        if (p) {
+        if (isDemo) {
+          // Prefill Franziska's persona for the demo (manual advance)
+          setA({ ...EMPTY, ...FRANZISKA_PREFILL });
+        } else if (p) {
           setA({
             role: p.role ?? "",
             stage: p.stage ?? "",
