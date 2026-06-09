@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useTranslation } from "react-i18next";
 import { matchmake } from "@/lib/matchmaking.functions";
+import { DEMO_MATCH_KEY } from "@/lib/demo-persona";
 
 export const Route = createFileRoute("/match")({
   head: () => ({
