@@ -93,6 +93,7 @@ function mapError(raw: string): FriendlyError {
 }
 
 function MatchPage() {
+  const { t } = useTranslation();
   const run = useServerFn(matchmake);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
@@ -100,6 +101,7 @@ function MatchPage() {
   const [result, setResult] = useState<{ summary: string; picks: Pick[] } | null>(null);
   const [step, setStep] = useState(0);
   const lastQueryRef = useRef<string>("");
+  const autoRanRef = useRef(false);
 
   useEffect(() => {
     if (!busy) return;
@@ -128,10 +130,32 @@ function MatchPage() {
     }
   }
 
+  // Auto-run when arriving from the /demo flow
+  useEffect(() => {
+    if (autoRanRef.current) return;
+    if (typeof window === "undefined") return;
+    const demoQuery = sessionStorage.getItem(DEMO_MATCH_KEY);
+    if (demoQuery && demoQuery.length >= 3) {
+      autoRanRef.current = true;
+      sessionStorage.removeItem(DEMO_MATCH_KEY);
+      setQuery(demoQuery);
+      void submit(demoQuery);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     submit(query.trim());
   }
+
+  const loadingSteps = [
+    t("match.steps.reading"),
+    t("match.steps.asking"),
+    t("match.steps.picking"),
+    t("match.steps.writing"),
+  ];
+
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
