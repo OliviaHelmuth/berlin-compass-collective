@@ -232,10 +232,10 @@ function MatchPage() {
               disabled={!lastQueryRef.current && query.trim().length < 3}
               className="px-4 py-2 rounded-full bg-primary text-primary-foreground border-2 border-outline shadow-brutal-sm text-xs font-semibold disabled:opacity-50"
             >
-              Try again
+              {t("common.tryAgain")}
             </button>
             <details className="text-[11px] opacity-70">
-              <summary className="cursor-pointer">Technical details</summary>
+              <summary className="cursor-pointer">{t("match.technical")}</summary>
               <pre className="mt-1 whitespace-pre-wrap break-all max-w-full">{error.raw}</pre>
             </details>
           </div>
@@ -253,7 +253,7 @@ function MatchPage() {
             ))}
           </div>
           {result.picks.length === 0 && (
-            <p className="text-sm text-muted-foreground">No clean matches — try adding more detail about your stage, focus area, or what you need next.</p>
+            <p className="text-sm text-muted-foreground">{t("match.noMatches")}</p>
           )}
         </section>
       )}
@@ -261,7 +261,7 @@ function MatchPage() {
   );
 }
 
-function LoadingPanel({ step }: { step: number }) {
+function LoadingPanel({ step, steps, scanningLabel, takesTime }: { step: number; steps: string[]; scanningLabel: string; takesTime: string }) {
   return (
     <section className="space-y-3" aria-live="polite" aria-busy="true">
       <div className="p-5 rounded-2xl bg-surface-container border-2 border-outline shadow-brutal space-y-3">
@@ -270,10 +270,10 @@ function LoadingPanel({ step }: { step: number }) {
             <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
             <span className="relative inline-flex h-3 w-3 rounded-full bg-primary" />
           </span>
-          <h2 className="font-display font-bold text-base">Scanning the Berlin ecosystem…</h2>
+          <h2 className="font-display font-bold text-base">{scanningLabel}</h2>
         </div>
-        <p className="text-sm text-muted-foreground transition-opacity">{LOADING_STEPS[step]}</p>
-        <p className="text-[11px] text-muted-foreground/80">This usually takes 5–15 seconds.</p>
+        <p className="text-sm text-muted-foreground transition-opacity">{steps[step] ?? steps[0]}</p>
+        <p className="text-[11px] text-muted-foreground/80">{takesTime}</p>
       </div>
       <div className="space-y-3">
         {[0, 1, 2].map((i) => (
@@ -293,7 +293,8 @@ function LoadingPanel({ step }: { step: number }) {
 }
 
 function PickCard({ pick }: { pick: Pick }) {
-  const kindLabel = pick.kind === "location" ? "Place" : pick.kind === "event" ? "Event" : "Opportunity";
+  const { t } = useTranslation();
+  const kindLabel = t(`match.kinds.${pick.kind}`);
 
   const common =
     "block p-4 rounded-xl border-2 border-outline bg-surface-container hover:shadow-brutal-sm transition-all";
