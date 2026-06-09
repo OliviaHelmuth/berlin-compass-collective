@@ -135,7 +135,14 @@ function OnboardingPage() {
           german_level: a.german_level || null,
         },
       });
-      navigate({ to: "/", replace: true });
+      const isDemo = typeof window !== "undefined" && sessionStorage.getItem(DEMO_FLAG_KEY) === "franziska";
+      if (isDemo) {
+        sessionStorage.setItem(DEMO_MATCH_KEY, FRANZISKA_MATCH_QUERY);
+        sessionStorage.removeItem(DEMO_FLAG_KEY);
+        navigate({ to: "/match", replace: true });
+      } else {
+        navigate({ to: "/", replace: true });
+      }
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
