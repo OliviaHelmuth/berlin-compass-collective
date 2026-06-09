@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { saveOnboarding, getMyProfile } from "@/lib/personalize.functions";
@@ -56,6 +57,7 @@ const EMPTY: Answers = {
 };
 
 function OnboardingPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const save = useServerFn(saveOnboarding);
   const loadProfile = useServerFn(getMyProfile);
