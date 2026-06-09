@@ -72,9 +72,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   }`}
                 >
                   <span className="material-symbols-rounded" style={{ fontSize: 18 }}>{n.icon}</span>
-                  {n.label}
+                  {t(n.labelKey)}
                   {isNew && (
-                    <span className="ml-1 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground border border-outline">NEW</span>
+                    <span className="ml-1 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground border border-outline">{t("common.new")}</span>
                   )}
                 </Link>
               );
@@ -82,9 +82,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <button
               onClick={toggleTheme}
-              aria-label="Toggle theme"
+              aria-label={t("nav.toggleTheme")}
               className="size-10 rounded-full bg-surface-container grid place-items-center hover:bg-surface-container-high transition-colors"
             >
               <span className="material-symbols-rounded" style={{ fontSize: 20 }}>{dark ? "light_mode" : "dark_mode"}</span>
@@ -92,7 +93,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {email ? (
               <Link
                 to="/settings"
-                aria-label="Settings"
+                aria-label={t("nav.settings")}
                 className="size-10 rounded-full bg-primary-container ring-2 ring-primary grid place-items-center font-display text-xs font-bold text-on-primary-container hover:opacity-90"
               >
                 {initials}
@@ -102,7 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to="/login"
                 className="px-4 h-10 rounded-full bg-accent text-accent-foreground font-semibold text-sm grid place-items-center shadow-brutal-sm border-2 border-outline"
               >
-                Sign in
+                {t("nav.signIn")}
               </Link>
             )}
           </div>
@@ -122,7 +123,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 <span className={`material-symbols-rounded ${active ? "fill" : ""}`} style={{ fontSize: 22 }}>{n.icon}</span>
               </span>
-              <span className={`text-[10px] font-semibold ${active ? "text-foreground" : "text-muted-foreground"}`}>{n.label}</span>
+              <span className={`text-[10px] font-semibold ${active ? "text-foreground" : "text-muted-foreground"}`}>{t(n.labelKey)}</span>
             </Link>
           );
         })}
