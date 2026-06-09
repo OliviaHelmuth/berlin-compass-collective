@@ -17,6 +17,7 @@ const NAV = [
 
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [email, setEmail] = useState<string | null>(null);
   const [dark, setDark] = useState(false);
