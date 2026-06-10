@@ -120,10 +120,20 @@ function AuthSync() {
   return null;
 }
 
+function LanguageBootstrap() {
+  // Apply the user's preferred language after hydration so SSR (always EN)
+  // and the first client render match — avoids React hydration mismatches.
+  useEffect(() => {
+    void import("@/i18n").then(({ detectAndApplyLanguage }) => detectAndApplyLanguage());
+  }, []);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
+      <LanguageBootstrap />
       <AuthSync />
       <AppShell>
         <Outlet />
