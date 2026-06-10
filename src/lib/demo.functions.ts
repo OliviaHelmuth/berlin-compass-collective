@@ -1,8 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-
-const DEMO_EMAIL = "franziska.demo@kiezfounders.berlin";
-const DEMO_PASSWORD = "franziska-demo-2026!";
-const DEMO_NAME = "Franziska Bauer";
+import { DEMO_EMAIL, DEMO_PASSWORD, DEMO_NAME } from "./demo-persona";
 
 /**
  * Ensure the shared Franziska demo account exists (creates with email confirmed
