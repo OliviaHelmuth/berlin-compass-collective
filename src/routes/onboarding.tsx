@@ -16,7 +16,7 @@ import {
   CURRENT_FOCUS,
   INTERESTS,
 } from "@/lib/tags";
-import { DEMO_FLAG_KEY, DEMO_MATCH_KEY, FRANZISKA_PREFILL, FRANZISKA_MATCH_QUERY } from "@/lib/demo-persona";
+import { DEMO_FLAG_KEY, DEMO_STEP_IDS, FRANZISKA_PREFILL } from "@/lib/demo-persona";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -29,6 +29,17 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 type ArrayKey = "industries" | "looking_for" | "background" | "current_focus" | "interests";
+type StepId =
+  | "role"
+  | "arrival"
+  | "residence"
+  | "german"
+  | "stage"
+  | "focus"
+  | "industries"
+  | "interests"
+  | "looking"
+  | "background";
 
 type Answers = {
   role: string;
@@ -56,6 +67,19 @@ const EMPTY: Answers = {
   interests: [],
 };
 
+const FULL_STEP_IDS: StepId[] = [
+  "role",
+  "arrival",
+  "residence",
+  "german",
+  "stage",
+  "focus",
+  "industries",
+  "interests",
+  "looking",
+  "background",
+];
+
 function OnboardingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -64,6 +88,7 @@ function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [a, setA] = useState<Answers>(EMPTY);
   const [authChecked, setAuthChecked] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -74,11 +99,11 @@ function OnboardingPage() {
         navigate({ to: "/login", search: { next: "/onboarding" } as never, replace: true });
         return;
       }
-      const isDemo = typeof window !== "undefined" && sessionStorage.getItem(DEMO_FLAG_KEY) === "franziska";
+      const demoFlag = typeof window !== "undefined" && sessionStorage.getItem(DEMO_FLAG_KEY) === "franziska";
+      setIsDemo(demoFlag);
       try {
         const p = await loadProfile();
-        if (isDemo) {
-          // Prefill Franziska's persona for the demo (manual advance)
+        if (demoFlag) {
           setA({ ...EMPTY, ...FRANZISKA_PREFILL });
         } else if (p) {
           setA({
@@ -108,22 +133,26 @@ function OnboardingPage() {
     });
   };
 
-  const steps = [
-    { id: "role", required: !!a.role },
-    { id: "arrival", required: !!a.arrival_status },
-    { id: "residence", required: !!a.residence_status },
-    { id: "german", required: !!a.german_level },
-    { id: "stage", required: !!a.stage },
-    { id: "focus", required: a.current_focus.length > 0 },
-    { id: "industries", required: a.industries.length > 0 },
-    { id: "interests", required: a.interests.length > 0 },
-    { id: "looking", required: a.looking_for.length > 0 },
-    { id: "background", required: true }, // optional
-  ];
-  const total = steps.length;
+  const stepIds: StepId[] = isDemo ? ([...DEMO_STEP_IDS] as StepId[]) : FULL_STEP_IDS;
+  const total = stepIds.length;
+  const id = stepIds[step];
+
+  const required: Record<StepId, boolean> = {
+    role: !!a.role,
+    arrival: !!a.arrival_status,
+    residence: !!a.residence_status,
+    german: !!a.german_level,
+    stage: !!a.stage,
+    focus: a.current_focus.length > 0,
+    industries: a.industries.length > 0,
+    interests: a.interests.length > 0,
+    looking: a.looking_for.length > 0,
+    background: true, // optional
+  };
+  const canAdvance = required[id];
+
   const next = () => setStep((s) => Math.min(s + 1, total - 1));
   const back = () => setStep((s) => Math.max(s - 1, 0));
-  const canAdvance = steps[step].required;
 
   const submit = async () => {
     setErr(null);
@@ -137,13 +166,11 @@ function OnboardingPage() {
           german_level: a.german_level || null,
         },
       });
-      const isDemo = typeof window !== "undefined" && sessionStorage.getItem(DEMO_FLAG_KEY) === "franziska";
       if (isDemo) {
-        sessionStorage.setItem(DEMO_MATCH_KEY, FRANZISKA_MATCH_QUERY);
-        sessionStorage.removeItem(DEMO_FLAG_KEY);
-        navigate({ to: "/match", replace: true });
+        // Keep the demo flag so /my-hub renders Franziska's polished demo header.
+        navigate({ to: "/my-hub", replace: true });
       } else {
-        navigate({ to: "/", replace: true });
+        navigate({ to: "/my-hub", replace: true });
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -154,10 +181,8 @@ function OnboardingPage() {
 
   if (!authChecked) return <div className="p-10 text-center text-sm text-muted-foreground">{t("common.loading")}</div>;
 
-  const id = steps[step].id;
-  const qKey = id === "looking" ? "looking" : id;
-  const qTitle = t(`onboarding.questions.${qKey}.title`);
-  const qSubtitle = t(`onboarding.questions.${qKey}.subtitle`);
+  const qTitle = t(`onboarding.questions.${id}.title`);
+  const qSubtitle = t(`onboarding.questions.${id}.subtitle`);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">

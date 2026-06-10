@@ -48,16 +48,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen flex flex-col bg-surface text-foreground">
       {/* Top App Bar */}
       <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur border-b-2 border-outline">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2 font-display font-bold text-xl tracking-tight uppercase">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2 font-display font-bold text-lg xl:text-xl tracking-tight uppercase shrink-0">
             <span className="size-8 grid place-items-center rounded-lg bg-primary text-primary-foreground shadow-brutal-sm">
               <span className="material-symbols-rounded" style={{ fontSize: 18 }}>map</span>
             </span>
             <span>Kiez Founders</span>
-            <span className="hidden sm:inline text-[10px] font-sans font-medium text-muted-foreground tracking-widest ml-1">BERLIN</span>
+            <span className="hidden 2xl:inline text-[10px] font-sans font-medium text-muted-foreground tracking-widest ml-1">BERLIN</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Compact icon nav on md–lg, full label nav on xl+ */}
+          <nav className="hidden md:flex items-center gap-0.5 min-w-0">
             {NAV.map((n) => {
               const active = path === n.to;
               const isNew = n.to === "/match";
@@ -65,23 +66,34 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Link
                   key={n.to}
                   to={n.to}
-                  className={`relative flex items-center gap-2 px-4 h-10 rounded-full text-sm font-medium transition-colors ${
+                  title={t(n.labelKey)}
+                  className={`relative flex items-center gap-2 px-2 xl:px-3 h-10 rounded-full text-sm font-medium transition-colors ${
                     active
                       ? "bg-primary-container text-on-primary-container ring-2 ring-primary"
                       : "hover:bg-surface-container"
                   }`}
                 >
                   <span className="material-symbols-rounded" style={{ fontSize: 18 }}>{n.icon}</span>
-                  {t(n.labelKey)}
+                  <span className="hidden xl:inline whitespace-nowrap">{t(n.labelKey)}</span>
                   {isNew && (
-                    <span className="ml-1 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground border border-outline">{t("common.new")}</span>
+                    <span
+                      className="hidden xl:inline ml-1 text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground border border-outline"
+                    >
+                      {t("common.new")}
+                    </span>
+                  )}
+                  {isNew && (
+                    <span
+                      className="xl:hidden absolute -top-0.5 -right-0.5 size-2 rounded-full bg-accent ring-2 ring-surface"
+                      aria-hidden
+                    />
                   )}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <LanguageSwitcher />
             <button
               onClick={toggleTheme}
@@ -101,7 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             ) : (
               <Link
                 to="/login"
-                className="px-4 h-10 rounded-full bg-accent text-accent-foreground font-semibold text-sm grid place-items-center shadow-brutal-sm border-2 border-outline"
+                className="px-3 lg:px-4 h-10 rounded-full bg-accent text-accent-foreground font-semibold text-xs lg:text-sm grid place-items-center shadow-brutal-sm border-2 border-outline whitespace-nowrap"
               >
                 {t("nav.signIn")}
               </Link>
